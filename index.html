@@ -805,6 +805,175 @@
   .toggle input:checked + .toggle-slider { background: rgba(201,64,64,0.2); border-color: var(--red); }
   .toggle input:checked + .toggle-slider:before { transform: translateX(20px); background: var(--red); }
 
+  /* ── NEW MACHINE ── */
+  .machine-wrap-new {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .machine-outer {
+    width: 220px;
+    background: linear-gradient(160deg, #2a2010 0%, #1a1508 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 16px 16px 8px 8px;
+    box-shadow:
+      0 0 60px rgba(212,168,67,0.15),
+      0 20px 40px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(212,168,67,0.3);
+    overflow: hidden;
+    transition: transform 0.1s;
+  }
+
+  .machine-top {
+    background: linear-gradient(135deg, #3a2a10 0%, #2a1e08 100%);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 10px;
+    text-align: center;
+    position: relative;
+  }
+
+  .machine-top-light {
+    width: 10px; height: 10px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 auto 6px;
+    box-shadow: 0 0 12px var(--gold);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 12px var(--gold); }
+    50% { opacity: 0.4; box-shadow: 0 0 4px var(--gold-dim); }
+  }
+
+  .machine-top-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+  }
+
+  .machine-glass-new {
+    position: relative;
+    margin: 10px;
+    height: 160px;
+    background: radial-gradient(ellipse at 40% 30%, rgba(212,168,67,0.06) 0%, rgba(0,0,0,0.5) 100%);
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 50% 50% 20px 20px / 30% 30% 20px 20px;
+    overflow: hidden;
+  }
+
+  .machine-glass-inner {
+    position: absolute;
+    inset: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .glass-shine {
+    position: absolute;
+    top: 5px; left: 15px;
+    width: 40px; height: 80px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .ball-new {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2);
+    animation: bobble 2.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .b1 { background: radial-gradient(circle at 35% 35%, #f5c842, #c4832a); animation-delay: 0s; }
+  .b2 { background: radial-gradient(circle at 35% 35%, #f07070, #8a2020); animation-delay: 0.3s; }
+  .b3 { background: radial-gradient(circle at 35% 35%, #70a8f0, #204090); animation-delay: 0.6s; }
+  .b4 { background: radial-gradient(circle at 35% 35%, #70e8a0, #208050); animation-delay: 0.9s; }
+  .b5 { background: radial-gradient(circle at 35% 35%, #e090f0, #7030a0); animation-delay: 0.15s; }
+  .b6 { background: radial-gradient(circle at 35% 35%, #f0a060, #904020); animation-delay: 0.45s; }
+  .b7 { background: radial-gradient(circle at 35% 35%, #60e0e0, #208080); animation-delay: 0.75s; }
+  .b8 { background: radial-gradient(circle at 35% 35%, #f0f060, #808020); animation-delay: 1.0s; }
+
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-5px) rotate(5deg); }
+    66% { transform: translateY(3px) rotate(-3deg); }
+  }
+
+  .machine-mid-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px;
+    background: rgba(212,168,67,0.08);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    color: var(--gold-dim);
+    font-size: 11px;
+  }
+
+  .machine-chute {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 4px;
+  }
+
+  .chute-opening {
+    width: 50px; height: 24px;
+    background: #080604;
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+  }
+
+  .machine-legs {
+    display: flex;
+    justify-content: space-around;
+    padding: 0 30px 8px;
+  }
+
+  .machine-leg {
+    width: 16px; height: 20px;
+    background: linear-gradient(180deg, #2a2010, #1a1508);
+    border: 1px solid var(--border);
+    border-radius: 0 0 4px 4px;
+  }
+
+  @keyframes machine-shake {
+    0%,100% { transform: rotate(0deg) scale(1); }
+    15% { transform: rotate(-4deg) scale(1.02); }
+    30% { transform: rotate(4deg) scale(1.02); }
+    45% { transform: rotate(-2deg) scale(1.01); }
+    60% { transform: rotate(2deg) scale(1.01); }
+    75% { transform: rotate(-1deg); }
+  }
+
+  .machine-outer.spinning { animation: machine-shake 0.7s ease-in-out; }
+  .machine-outer.spinning .top-light { background: var(--gold-light); }
+
+  .result-ball-out {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    margin-top: -8px;
+    opacity: 0;
+    transform: scale(0) translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 20px rgba(212,168,67,0.4);
+  }
+
+  .result-ball-out.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
   /* ── CONFETTI ── */
   .confetti-piece {
     position: fixed;
@@ -880,21 +1049,47 @@
   <!-- Sub Pages -->
   <div id="sub-gacha" style="flex:1;display:flex;flex-direction:column">
     <div class="gacha-content">
-      <div class="machine-wrap">
-        <div class="machine-body" id="machine">
-          <div class="machine-glass">
-            <div class="balls-container">
-              <div class="ball"></div>
-              <div class="ball"></div>
-              <div class="ball"></div>
-              <div class="ball"></div>
-              <div class="ball"></div>
-              <div class="ball"></div>
-            </div>
+      <div class="machine-wrap-new">
+        <!-- 機身外框 -->
+        <div class="machine-outer" id="machine">
+          <!-- 頂部裝飾 -->
+          <div class="machine-top">
+            <div class="machine-top-light" id="top-light"></div>
+            <div class="machine-top-text">LUCKY GACHA</div>
           </div>
-          <div class="machine-label">LUCKY GACHA</div>
-          <div class="machine-slot"></div>
+          <!-- 玻璃球槽 -->
+          <div class="machine-glass-new">
+            <div class="machine-glass-inner">
+              <div class="ball-new b1"></div>
+              <div class="ball-new b2"></div>
+              <div class="ball-new b3"></div>
+              <div class="ball-new b4"></div>
+              <div class="ball-new b5"></div>
+              <div class="ball-new b6"></div>
+              <div class="ball-new b7"></div>
+              <div class="ball-new b8"></div>
+            </div>
+            <!-- 玻璃反光 -->
+            <div class="glass-shine"></div>
+          </div>
+          <!-- 中間裝飾條 -->
+          <div class="machine-mid-strip">
+            <span>🪙</span>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px">INSERT COIN</span>
+            <span>🪙</span>
+          </div>
+          <!-- 出口滑道 -->
+          <div class="machine-chute">
+            <div class="chute-opening"></div>
+          </div>
+          <!-- 底部腳架 -->
+          <div class="machine-legs">
+            <div class="machine-leg"></div>
+            <div class="machine-leg"></div>
+          </div>
         </div>
+        <!-- 轉蛋球出口動畫 -->
+        <div class="result-ball-out" id="result-ball-out"></div>
       </div>
 
       <button class="spin-btn" id="spin-btn" onclick="doSpin()">抽　獎</button>
@@ -957,7 +1152,10 @@
 <div id="page-admin" class="page">
   <div class="topbar">
     <div class="topbar-title">⚙️ 後台管理</div>
-    <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px">登出</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="refreshAll()" id="refresh-btn" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);padding:6px 14px;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all 0.2s">↻ 更新</button>
+      <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px">登出</button>
+    </div>
   </div>
 
   <!-- Admin Stats Bar -->
@@ -1222,22 +1420,40 @@ async function authSignUp(phone, password, name) {
     body: JSON.stringify({ email, password })
   });
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message || data.msg);
-  // 建立 users 資料表紀錄
+
+  if (!res.ok) throw new Error(data.msg || data.error_description || data.error || JSON.stringify(data));
+  if (data.error) throw new Error(data.error.message || data.error);
+
+  const user = data.user || data;
   const token = data.access_token;
-  await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+
+  if (!user || !user.id) throw new Error('找不到用戶ID，回傳：' + JSON.stringify(Object.keys(data)));
+  if (!token) throw new Error('找不到token，回傳：' + JSON.stringify(Object.keys(data)));
+
+  const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
     method: 'POST',
-    headers: { ...headers(token) },
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
     body: JSON.stringify({
-      id: data.user.id,
+      id: user.id,
       phone,
-      password_hash: password, // 暫存明文供比對，正式上線要改 bcrypt
+      password_hash: password,
       name,
       tickets: 0,
       is_admin: phone === ADMIN_PHONE
     })
   });
-  return { token, userId: data.user.id };
+
+  if (!insertRes.ok) {
+    const errText = await insertRes.text();
+    throw new Error('建立用戶資料失敗：' + errText);
+  }
+
+  return { token, userId: user.id };
 }
 
 async function authSignIn(phone, password) {
@@ -1462,7 +1678,9 @@ async function doSpin() {
   // Animate machine
   const machine = document.getElementById('machine');
   machine.classList.add('spinning');
-  setTimeout(() => machine.classList.remove('spinning'), 600);
+  const rb = document.getElementById('result-ball-out');
+  if(rb) rb.classList.remove('show');
+  setTimeout(() => machine.classList.remove('spinning'), 700);
 
   try {
     // 1. 扣券
@@ -1524,7 +1742,14 @@ function showResult(prize) {
   const note = document.getElementById('result-note');
   note.style.display = prize.isPhysical ? 'block' : 'none';
   if (prize.isFreeSpin) spawnConfetti();
-  document.getElementById('result-modal').classList.add('show');
+  // 出口球動畫
+  const rb = document.getElementById('result-ball-out');
+  if (rb) {
+    const colors = ['#f5c842','#f07070','#70a8f0','#70e8a0','#e090f0','#f0a060'];
+    rb.style.background = `radial-gradient(circle at 35% 35%, ${colors[Math.floor(Math.random()*colors.length)]}, #1a1508)`;
+    rb.classList.add('show');
+  }
+  setTimeout(() => document.getElementById('result-modal').classList.add('show'), 300);
 }
 
 function closeResult() {
@@ -1773,6 +1998,12 @@ async function markShipped(spinId) {
 }
 
 // ── 獎品設定 ──
+function calcPrizePercent(prize) {
+  const total = state.prizes.reduce((s, p) => s + (p.weight || 0), 0);
+  if (!total) return '0%';
+  return ((prize.weight / total) * 100).toFixed(1) + '%';
+}
+
 function renderAdminPrizes() {
   const list = document.getElementById('admin-prizes-list');
   list.innerHTML = state.prizes.map(p => `
@@ -1782,7 +2013,7 @@ function renderAdminPrizes() {
         <div class="prize-admin-name">${p.name}</div>
         <div class="prize-admin-stock">
           ${p.isUnlimited ? '無限庫存' : `庫存 ${p.stock} 件`}
-          ／ 權重 ${p.weight}
+          ／ 機率 <strong style="color:var(--gold)">${calcPrizePercent(p)}</strong>
           ${p.isPhysical ? '／ 🚚 實體' : '／ 💻 虛擬'}
         </div>
       </div>
@@ -1913,6 +2144,29 @@ async function addTicketToUser(userId, currentTickets) {
 }
 
 // ── 系統設定 ──
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '↻ 更新中…';
+  btn.style.opacity = '0.6';
+  try {
+    await loadPrizes();
+    await updateAdminStats();
+    // 重新渲染當前 tab
+    const activeTab = document.querySelector('.admin-tab.active');
+    if (activeTab) {
+      const tab = activeTab.id.replace('atab-', '');
+      if (tab === 'orders') await renderAdminOrders();
+      if (tab === 'prizes') renderAdminPrizes();
+      if (tab === 'users') await loadAndRenderAdminUsers();
+    }
+    btn.textContent = '✓ 已更新';
+    setTimeout(() => { btn.textContent = '↻ 更新'; btn.style.opacity = '1'; }, 1500);
+  } catch(e) {
+    btn.textContent = '↻ 更新';
+    btn.style.opacity = '1';
+  }
+}
+
 function loadSettings() {
   document.getElementById('setting-price').value = sysSettings.price;
   document.getElementById('setting-daily-limit').value = sysSettings.dailyLimit;
