@@ -1126,6 +1126,11 @@
         <label>密碼</label>
         <input type="password" id="reg-pass" placeholder="至少6個字元">
       </div>
+      <div class="form-group">
+        <label>邀請碼（選填）</label>
+        <input type="text" id="reg-invite" placeholder="朋友的邀請碼" style="text-transform:uppercase">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;letter-spacing:0.5px">填寫邀請碼並完成首次付費後，雙方各獲得獎勵券</div>
+      </div>
       <button class="btn-primary" onclick="doRegister()">註　冊</button>
       <div class="login-switch">已有帳號？<a onclick="showLogin()">返回登入</a></div>
     </div>
@@ -1243,6 +1248,30 @@
           <span class="info-value" id="profile-storename">未設定</span>
         </div>
         <button class="btn-edit" onclick="showEditProfile()" style="margin-top:16px">編輯資料</button>
+      </div>
+
+      <!-- 邀請好友區塊 -->
+      <div class="profile-section">
+        <div class="section-title">🎟 邀請好友</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px">你的專屬邀請碼</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="my-invite-code" style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--gold);letter-spacing:4px">——</div>
+            <button onclick="copyInviteCode()" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:6px 12px;font-size:12px;letter-spacing:1px;cursor:pointer">複製</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:2;letter-spacing:0.5px">
+          <p>📋 <strong style="color:var(--text)">如何獲得獎勵？</strong></p>
+          <p>① 把你的邀請碼分享給朋友</p>
+          <p>② 朋友註冊時填入你的邀請碼</p>
+          <p>③ 朋友完成首次付費購券後</p>
+          <p>✨ <strong style="color:var(--gold)">你獲得 +2 張券，朋友獲得 +1 張券</strong></p>
+          <p style="margin-top:8px;color:var(--text-dim)">邀請人數無上限，帶越多人玩越多券！</p>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--border)">
+          <div style="font-size:12px;color:var(--text-dim)">已成功邀請</div>
+          <div id="invite-count" style="font-family:'Space Mono',monospace;font-size:16px;color:var(--gold)">0 人</div>
+        </div>
       </div>
 
       <div class="profile-section">
@@ -1493,7 +1522,10 @@
     <div class="result-name" id="result-name">—</div>
     <div class="result-desc" id="result-desc">—</div>
     <div class="result-note" id="result-note" style="display:none">🎁 獎品已累積至「個人頁面」，可累積多樣商品後再一次申請出貨</div>
-    <button class="btn-close" onclick="closeResult()">確　認</button>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn-close" onclick="closeResult()" style="flex:1">確　認</button>
+      <button onclick="shareResult()" style="flex:1;background:linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff);border:none;border-radius:2px;color:white;font-family:'Noto Serif TC',serif;font-weight:700;font-size:13px;letter-spacing:2px;cursor:pointer;padding:10px">分享結果 🎉</button>
+    </div>
   </div>
 </div>
 
@@ -1817,6 +1849,7 @@ async function doRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const phone = document.getElementById('reg-phone').value.trim();
   const pass = document.getElementById('reg-pass').value;
+  const inviteCode = document.getElementById('reg-invite').value.trim().toUpperCase();
   if (!name || !phone || !pass) return alert('請填寫所有欄位');
   if (pass.length < 6) return alert('密碼至少6個字元');
   showLoading('註冊中…');
@@ -1826,6 +1859,22 @@ async function doRegister() {
     const rows = await dbSelect('users', `id=eq.${userId}`);
     state.user = rows[0];
     state.isAdmin = false;
+
+    // 處理邀請碼
+    if (inviteCode) {
+      try {
+        const inviters = await dbSelect('users', `invite_code=eq.${inviteCode}`);
+        if (inviters.length && inviters[0].id !== userId) {
+          // 建立邀請關係（等首次付費才發獎勵）
+          await dbInsert('referrals', {
+            inviter_id: inviters[0].id,
+            invitee_id: userId,
+            is_rewarded: false
+          });
+        }
+      } catch(e) { /* 邀請碼無效就忽略 */ }
+    }
+
     hideLoading();
     await enterApp();
   } catch(e) {
@@ -1933,7 +1982,7 @@ function switchSub(tab) {
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
   if (tab === 'prizes') renderPrizes();
-  if (tab === 'profile') { renderProfile(); renderOrders(); loadMyShipments(); }
+  if (tab === 'profile') { renderProfile(); renderOrders(); loadMyShipments(); loadInviteInfo(); }
 }
 
 // ══════════════════════════════════════
@@ -2197,6 +2246,10 @@ async function simulatePurchase() {
     await recordDailyPurchase();
     state.user.tickets = newTickets;
     updateTicketCount();
+
+    // 首次付費觸發邀請獎勵
+    await triggerReferralReward();
+
     document.getElementById('no-ticket-msg').style.display = 'none';
     hideLoading();
     closePurchase();
@@ -2620,7 +2673,8 @@ async function loadAndRenderAdminUsers() {
           <div class="user-name">${u.name}</div>
           <div class="user-meta">
             📱 ${u.phone}<br>
-            🏪 ${u.convenience_store || '未填'} ${u.store_name || ''}
+            🏪 ${u.convenience_store || '未填'} ${u.store_name || ''}<br>
+            🎟 邀請碼：<span style="font-family:'Space Mono',monospace;color:var(--gold)">${u.invite_code || '——'}</span>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
@@ -2668,6 +2722,185 @@ async function refreshAll() {
     btn.textContent = '↻ 更新';
     btn.style.opacity = '1';
   }
+}
+
+// ══════════════════════════════════════
+// 邀請碼系統
+// ══════════════════════════════════════
+async function loadInviteInfo() {
+  const el = document.getElementById('my-invite-code');
+  const countEl = document.getElementById('invite-count');
+  if (!el || !state.user) return;
+  try {
+    // 重新載入用戶確保有邀請碼
+    const rows = await dbSelect('users', `id=eq.${state.user.id}`);
+    if (rows.length) {
+      state.user = { ...state.user, ...rows[0] };
+      el.textContent = rows[0].invite_code || '——';
+    }
+    // 載入邀請人數
+    const refs = await dbSelect('referrals', `inviter_id=eq.${state.user.id}&is_rewarded=eq.true`);
+    if (countEl) countEl.textContent = refs.length + ' 人';
+  } catch(e) {}
+}
+
+function copyInviteCode() {
+  const code = document.getElementById('my-invite-code').textContent;
+  if (!code || code === '——') return;
+  const text = `我在玩命運膠囊扭蛋！用我的邀請碼 ${code} 註冊，首次付費後你獲得+1張券，我獲得+2張券！
+https://gacha-self-one.vercel.app`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('✅ 已複製邀請訊息！貼給朋友就可以了');
+  }).catch(() => {
+    prompt('複製這段訊息分享給朋友：', text);
+  });
+}
+
+async function triggerReferralReward() {
+  try {
+    // 查是否有未發獎勵的邀請關係
+    const refs = await dbSelect('referrals', `invitee_id=eq.${state.user.id}&is_rewarded=eq.false`);
+    if (!refs.length) return;
+    const ref = refs[0];
+
+    // 發獎勵給邀請人 +2 券
+    const inviters = await dbSelect('users', `id=eq.${ref.inviter_id}`);
+    if (inviters.length) {
+      await dbUpdate('users', `id=eq.${ref.inviter_id}`, {
+        tickets: (inviters[0].tickets || 0) + 2
+      });
+    }
+
+    // 發獎勵給被邀請人 +1 券
+    const newTickets = (state.user.tickets || 0) + 1;
+    await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: newTickets });
+    state.user.tickets = newTickets;
+    updateTicketCount();
+
+    // 標記已發獎勵
+    await dbUpdate('referrals', `id=eq.${ref.id}`, { is_rewarded: true });
+
+    alert('🎉 邀請獎勵已發放！你獲得 +1 張額外券');
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════
+// 分享結果
+// ══════════════════════════════════════
+function shareResult() {
+  const prizeName = document.getElementById('result-name').textContent;
+  const prizeEmoji = document.getElementById('result-emoji').textContent;
+  const inviteCode = state.user?.invite_code || '';
+
+  // 建立分享 canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 600; canvas.height = 600;
+  const ctx = canvas.getContext('2d');
+
+  // 背景漸層
+  const grad = ctx.createLinearGradient(0, 0, 600, 600);
+  grad.addColorStop(0, '#1a0a2e');
+  grad.addColorStop(0.3, '#0d1b2a');
+  grad.addColorStop(0.6, '#1a0a0a');
+  grad.addColorStop(1, '#0a1a0a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 600, 600);
+
+  // 彩色光暈
+  const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff'];
+  colors.forEach((c, i) => {
+    const glow = ctx.createRadialGradient(
+      100 + i*100, 100 + (i%2)*300, 0,
+      100 + i*100, 100 + (i%2)*300, 150
+    );
+    glow.addColorStop(0, c + '40');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, 600, 600);
+  });
+
+  // 裝飾星星
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random()*600, y = Math.random()*600;
+    const s = Math.random()*2+0.5;
+    ctx.fillRect(x, y, s, s);
+  }
+
+  // 品牌標題
+  ctx.font = 'bold 18px serif';
+  ctx.fillStyle = '#d4a843';
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '6px';
+  ctx.fillText('命　運　膠　囊', 300, 60);
+
+  // 分隔線
+  ctx.strokeStyle = 'rgba(212,168,67,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80,75); ctx.lineTo(520,75); ctx.stroke();
+
+  // 大emoji
+  ctx.font = '96px serif';
+  ctx.fillText(prizeEmoji, 300, 210);
+
+  // 「我抽到了」
+  ctx.font = '16px serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('我剛剛抽到了', 300, 280);
+
+  // 獎品名稱（大字漸層）
+  const textGrad = ctx.createLinearGradient(100, 300, 500, 360);
+  textGrad.addColorStop(0, '#ffd93d');
+  textGrad.addColorStop(0.5, '#ff6b6b');
+  textGrad.addColorStop(1, '#c77dff');
+  ctx.font = 'bold 44px serif';
+  ctx.fillStyle = textGrad;
+  ctx.fillText(prizeName, 300, 345);
+
+  // 邀請碼區塊
+  if (inviteCode) {
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.beginPath();
+    ctx.roundRect(120, 390, 360, 80, 8);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(212,168,67,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = '13px serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('用我的邀請碼，你也能來試試運氣 👇', 300, 418);
+    ctx.font = 'bold 26px monospace';
+    ctx.fillStyle = '#d4a843';
+    ctx.letterSpacing = '8px';
+    ctx.fillText(inviteCode, 300, 452);
+  }
+
+  // 網址
+  ctx.font = '14px monospace';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.letterSpacing = '1px';
+  ctx.fillText('gacha-self-one.vercel.app', 300, 560);
+
+  // 底部光線
+  const bottomGrad = ctx.createLinearGradient(0, 580, 600, 580);
+  bottomGrad.addColorStop(0, 'transparent');
+  bottomGrad.addColorStop(0.3, '#d4a843');
+  bottomGrad.addColorStop(0.7, '#d4a843');
+  bottomGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = bottomGrad;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0,580); ctx.lineTo(600,580); ctx.stroke();
+
+  // 下載圖片
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '命運膠囊_抽獎結果.png';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 // ══════════════════════════════════════
