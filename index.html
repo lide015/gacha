@@ -905,27 +905,102 @@
   }
 
   .ball-new {
-    width: 30px; height: 30px;
+    width: 32px; height: 32px;
     border-radius: 50%;
-    box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2);
-    animation: bobble 2.5s ease-in-out infinite;
+    box-shadow:
+      inset -5px -5px 10px rgba(0,0,0,0.55),
+      inset 4px 4px 8px rgba(255,255,255,0.28),
+      0 3px 10px rgba(0,0,0,0.5);
+    animation: bobble 2.8s ease-in-out infinite;
     flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
   }
 
-  .b1 { background: radial-gradient(circle at 35% 35%, #f5c842, #c4832a); animation-delay: 0s; }
-  .b2 { background: radial-gradient(circle at 35% 35%, #f07070, #8a2020); animation-delay: 0.3s; }
-  .b3 { background: radial-gradient(circle at 35% 35%, #70a8f0, #204090); animation-delay: 0.6s; }
-  .b4 { background: radial-gradient(circle at 35% 35%, #70e8a0, #208050); animation-delay: 0.9s; }
-  .b5 { background: radial-gradient(circle at 35% 35%, #e090f0, #7030a0); animation-delay: 0.15s; }
-  .b6 { background: radial-gradient(circle at 35% 35%, #f0a060, #904020); animation-delay: 0.45s; }
-  .b7 { background: radial-gradient(circle at 35% 35%, #60e0e0, #208080); animation-delay: 0.75s; }
-  .b8 { background: radial-gradient(circle at 35% 35%, #f0f060, #808020); animation-delay: 1.0s; }
+  /* 高光 */
+  .ball-new::before {
+    content: '';
+    position: absolute;
+    top: 5px; left: 6px;
+    width: 11px; height: 9px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    transform: rotate(-35deg);
+    pointer-events: none;
+  }
+
+  /* 旋轉紋路 */
+  .ball-new::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-linear-gradient(
+      60deg,
+      transparent,
+      transparent 5px,
+      rgba(0,0,0,0.07) 5px,
+      rgba(0,0,0,0.07) 6px
+    );
+    animation: tex-rotate 2s linear infinite;
+  }
+
+  @keyframes tex-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .b1 { background: radial-gradient(circle at 32% 28%, #ffe080, #c47010); animation-delay: 0s; }
+  .b2 { background: radial-gradient(circle at 32% 28%, #ff8888, #901010); animation-delay: 0.35s; }
+  .b3 { background: radial-gradient(circle at 32% 28%, #88bbff, #1038a8); animation-delay: 0.7s; }
+  .b4 { background: radial-gradient(circle at 32% 28%, #88ffb0, #107840); animation-delay: 1.05s; }
+  .b5 { background: radial-gradient(circle at 32% 28%, #dd88ff, #5800a0); animation-delay: 0.2s; }
+  .b6 { background: radial-gradient(circle at 32% 28%, #ffbb70, #803008); animation-delay: 0.55s; }
+  .b7 { background: radial-gradient(circle at 32% 28%, #70eaee, #087878); animation-delay: 0.9s; }
+  .b8 { background: radial-gradient(circle at 32% 28%, #eaea70, #686808); animation-delay: 1.25s; }
 
   @keyframes bobble {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(-5px) rotate(5deg); }
-    66% { transform: translateY(3px) rotate(-3deg); }
+    0%   { transform: translateY(0px) rotate(0deg) scale(1); }
+    18%  { transform: translateY(-9px) rotate(18deg) scale(1.06); }
+    36%  { transform: translateY(4px) rotate(-10deg) scale(0.96); }
+    54%  { transform: translateY(-6px) rotate(24deg) scale(1.04); }
+    72%  { transform: translateY(5px) rotate(-6deg) scale(0.97); }
+    100% { transform: translateY(0px) rotate(0deg) scale(1); }
   }
+
+  /* 抽獎時球瘋狂彈跳 */
+  .machine-outer.spinning .ball-new::after {
+    animation: tex-rotate 0.15s linear infinite;
+  }
+
+  @keyframes spin-fast {
+    0%   { transform: translateY(0px) rotate(0deg); }
+    100% { transform: translateY(0px) rotate(720deg); }
+  }
+
+  @keyframes bounce-around {
+    0%   { transform: translate(0px, 0px) rotate(0deg); }
+    15%  { transform: translate(8px, -12px) rotate(60deg); }
+    30%  { transform: translate(-6px, -6px) rotate(120deg); }
+    45%  { transform: translate(10px, 4px) rotate(200deg); }
+    60%  { transform: translate(-8px, -10px) rotate(280deg); }
+    75%  { transform: translate(4px, 6px) rotate(360deg); }
+    90%  { transform: translate(-4px, -4px) rotate(440deg); }
+    100% { transform: translate(0px, 0px) rotate(480deg); }
+  }
+
+  .machine-outer.spinning .ball-new {
+    animation: bounce-around 0.7s ease-in-out !important;
+  }
+
+  .machine-outer.spinning .b1 { animation-delay: 0s !important; }
+  .machine-outer.spinning .b2 { animation-delay: 0.05s !important; }
+  .machine-outer.spinning .b3 { animation-delay: 0.1s !important; }
+  .machine-outer.spinning .b4 { animation-delay: 0.15s !important; }
+  .machine-outer.spinning .b5 { animation-delay: 0.08s !important; }
+  .machine-outer.spinning .b6 { animation-delay: 0.12s !important; }
+  .machine-outer.spinning .b7 { animation-delay: 0.03s !important; }
+  .machine-outer.spinning .b8 { animation-delay: 0.18s !important; }
 
   .machine-mid-strip {
     display: flex;
@@ -1911,9 +1986,12 @@ async function doSpin() {
       status: prize.isPhysical ? 'collected' : 'done'
     });
 
-    // 6. 重新載入訂單
+    // 6. 重新載入訂單與獎品庫存（同步所有頁面）
     await loadMyOrders();
+    await loadPrizes();
     renderOrders();
+    renderPrizes();
+    renderAdminPrizesIfOpen();
 
     setTimeout(() => {
       showResult(prize);
@@ -2313,6 +2391,14 @@ async function markShipped(spinId) {
 }
 
 // ── 獎品設定 ──
+function renderAdminPrizesIfOpen() {
+  // 如果後台獎品設定 tab 是開著的，也同步更新
+  const tab = document.getElementById('admin-prizes');
+  if (tab && tab.style.display !== 'none') {
+    renderAdminPrizes();
+  }
+}
+
 function calcPrizePercent(prize) {
   const total = state.prizes.reduce((s, p) => s + (p.weight || 0), 0);
   if (!total) return '0%';
