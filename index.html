@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>公務員轉蛋</title>
+<title>命運膠囊</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -998,8 +998,8 @@
 ══════════════════════════════════════ -->
 <div id="page-login" class="page active">
   <div class="login-box">
-    <div class="login-title">轉蛋機</div>
-    <div class="login-subtitle">CIVIL SERVANT GACHA</div>
+    <div class="login-title">命運膠囊</div>
+    <div class="login-subtitle">CAPSULE OF FATE</div>
 
     <div id="login-form">
       <div class="form-group">
@@ -1039,7 +1039,7 @@
 <div id="page-app" class="page">
   <!-- Top Bar -->
   <div class="topbar">
-    <div class="topbar-title">公務員轉蛋</div>
+    <div class="topbar-title">命運膠囊</div>
     <div class="ticket-badge">
       🎟 <span id="ticket-count">0</span>
       <button class="add-btn" onclick="showPurchase()" title="購買券">＋</button>
@@ -1092,10 +1092,17 @@
         <div class="result-ball-out" id="result-ball-out"></div>
       </div>
 
-      <button class="spin-btn" id="spin-btn" onclick="doSpin()">抽　獎</button>
+      <button class="spin-btn" id="spin-btn" onclick="checkTermsThenSpin()">抽　獎</button>
 
       <div class="no-ticket-msg" id="no-ticket-msg" style="display:none">
         票券不足——<a onclick="showPurchase()">點此購買</a>
+      </div>
+      <div style="margin-top:8px;text-align:center">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text-dim);letter-spacing:1px">
+          <input type="checkbox" id="terms-check" style="accent-color:var(--gold);width:14px;height:14px">
+          我已閱讀並同意
+          <a onclick="showTermsModal()" style="color:var(--gold);cursor:pointer">服務條款</a>
+        </label>
       </div>
     </div>
   </div>
@@ -1103,6 +1110,15 @@
   <div id="sub-prizes" style="flex:1;display:none;flex-direction:column">
     <div class="prizes-content">
       <div class="prizes-grid" id="prizes-grid"></div>
+      <!-- 許願池 -->
+      <div style="margin-top:28px">
+        <div class="section-title">🌟 許願池</div>
+        <div style="font-size:12px;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;line-height:1.8">
+          告訴我們你想要什麼獎品，我們會認真考慮補貨！
+        </div>
+        <textarea id="wish-input" placeholder="例：想要印有「依法行政」的馬克杯…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;color:var(--text);font-family:'Noto Serif TC',serif;font-size:13px;resize:vertical;min-height:80px;outline:none;letter-spacing:1px"></textarea>
+        <button onclick="submitWish()" style="width:100%;margin-top:10px;background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:12px;font-family:'Noto Serif TC',serif;font-size:13px;letter-spacing:3px;cursor:pointer;transition:all 0.2s">許願</button>
+      </div>
     </div>
   </div>
 
@@ -1130,10 +1146,30 @@
       </div>
 
       <div class="profile-section">
-        <div class="section-title">中獎紀錄</div>
-        <div id="orders-list">
-          <div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無紀錄</div>
+        <div class="section-title">我的獎品（累積中）</div>
+        <div id="collected-list">
+          <div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無累積獎品</div>
         </div>
+        <button id="apply-ship-btn" onclick="applyShipment()" style="display:none;width:100%;margin-top:14px;background:var(--gold);color:#0f0e0a;border:none;border-radius:2px;padding:13px;font-family:'Noto Serif TC',serif;font-weight:700;font-size:14px;letter-spacing:4px;cursor:pointer">申請出貨</button>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title">出貨申請紀錄</div>
+        <div id="shipment-list">
+          <div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無申請紀錄</div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title">使用說明</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:2;letter-spacing:0.5px">
+          <p style="margin-bottom:8px">🎟 <strong style="color:var(--text)">如何開始</strong><br>購買抽獎券後，點「抽獎」按鈕參與。每日限購一張，於台灣時間 00:00 重置。</p>
+          <p style="margin-bottom:8px">🎁 <strong style="color:var(--text)">獎品累積</strong><br>抽中實體商品會累積在「我的獎品」，可等到想要的時候再一次申請出貨，節省運費。</p>
+          <p style="margin-bottom:8px">🚚 <strong style="color:var(--text)">申請出貨</strong><br>填妥超商收件資料後按「申請出貨」，賣家確認後約 3-5 個工作天到店。</p>
+          <p style="margin-bottom:8px">🌟 <strong style="color:var(--text)">許願池</strong><br>在「獎品頁面」下方可以填寫想要的獎品，賣家會參考進行補貨。</p>
+          <p>💬 <strong style="color:var(--text)">聯繫客服</strong><br>有任何問題請至官方 LINE 聯繫，將於 3 個工作天內回覆。</p>
+        </div>
+        <button onclick="showTermsModal()" style="margin-top:14px;background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:2px;padding:8px 20px;font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:2px;cursor:pointer">查看服務條款</button>
       </div>
     </div>
   </div>
@@ -1184,6 +1220,8 @@
       <button class="admin-tab active" id="atab-orders" onclick="switchAdminTab('orders')">出貨管理</button>
       <button class="admin-tab" id="atab-prizes" onclick="switchAdminTab('prizes')">獎品設定</button>
       <button class="admin-tab" id="atab-users" onclick="switchAdminTab('users')">用戶列表</button>
+      <button class="admin-tab" id="atab-wishes" onclick="switchAdminTab('wishes')">許願池</button>
+      <button class="admin-tab" id="atab-promos" onclick="switchAdminTab('promos')">優惠碼</button>
       <button class="admin-tab" id="atab-settings" onclick="switchAdminTab('settings')">系統設定</button>
     </div>
 
@@ -1209,7 +1247,18 @@
       <div id="admin-users-list"></div>
     </div>
 
-    <!-- ── TAB 4: 系統設定 ── -->
+    <!-- ── TAB 4: 許願池 ── -->
+    <div id="admin-wishes" style="display:none">
+      <div id="admin-wishes-list"></div>
+    </div>
+
+    <!-- ── TAB 5: 優惠碼 ── -->
+    <div id="admin-promos" style="display:none">
+      <button class="btn-add-prize" onclick="showAddPromo()">＋ 新增優惠碼</button>
+      <div id="admin-promos-list"></div>
+    </div>
+
+    <!-- ── TAB 6: 系統設定 ── -->
     <div id="admin-settings" style="display:none">
       <div class="settings-section">
         <div class="section-title">抽獎券設定</div>
@@ -1330,6 +1379,10 @@
     <div class="result-name">NT$ 100 / 張</div>
     <div class="result-desc" style="margin-bottom:16px">每日限購一張<br>付款成功後自動加入票券</div>
     <button class="btn-primary" onclick="simulatePurchase()" style="margin-bottom:12px">前往付款（綠界）</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <input type="text" id="promo-input" placeholder="輸入優惠碼" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;text-transform:uppercase">
+      <button onclick="redeemPromo()" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:10px 14px;font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:1px;cursor:pointer;white-space:nowrap">兌換</button>
+    </div>
     <button class="btn-close" onclick="closePurchase()">取　消</button>
   </div>
 </div>
@@ -1352,6 +1405,73 @@
     </div>
     <button class="btn-primary" onclick="saveProfile()" style="margin-bottom:12px">儲　存</button>
     <button class="btn-close" onclick="closeEdit()">取　消</button>
+  </div>
+</div>
+
+<!-- 條款 Modal -->
+<div class="modal-overlay" id="terms-modal">
+  <div class="result-modal" style="max-height:85vh;overflow-y:auto;text-align:left">
+    <div style="font-size:14px;font-weight:900;color:var(--gold);letter-spacing:3px;margin-bottom:20px;text-align:center">服務條款</div>
+    <div style="font-size:12px;color:var(--text-dim);line-height:2;letter-spacing:0.5px">
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第一條：服務說明</p>
+      <p style="margin-bottom:14px">本平台「命運膠囊」提供線上抽獎服務，用戶購買抽獎券後參與抽獎，獎品依系統隨機結果發放。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第二條：抽獎券購買</p>
+      <p style="margin-bottom:4px">1. 每張抽獎券售價 NT$100</p>
+      <p style="margin-bottom:4px">2. 每位用戶每日限購一張，於台灣時間每日 00:00 重置</p>
+      <p style="margin-bottom:14px">3. 抽獎券一經購買，不得退款或轉讓</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第三條：抽獎規則</p>
+      <p style="margin-bottom:4px">1. 抽獎結果由系統依設定機率隨機產生，結果即時確認</p>
+      <p style="margin-bottom:4px">2. 每次抽獎消耗一張券，抽獎結果不可重抽或更改</p>
+      <p style="margin-bottom:14px">3. 抽中「免費再抽」者，系統自動補發一張券</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第四條：獎品領取</p>
+      <p style="margin-bottom:4px">1. 實體獎品抽中後累積於帳號，用戶可自行決定申請出貨時機</p>
+      <p style="margin-bottom:4px">2. 申請出貨前請確認姓名、超商別及門市名稱填寫正確</p>
+      <p style="margin-bottom:4px">3. 申請送出後地址資料不得變更，請務必確認後再申請</p>
+      <p style="margin-bottom:4px">4. 賣方收到申請後將於 3-5 個工作天內安排寄送</p>
+      <p style="margin-bottom:14px">5. 超商取貨到店後請於期限內領取，逾期未取視同放棄</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第五條：免責聲明</p>
+      <p style="margin-bottom:4px">1. 本平台保留修改獎品內容、機率設定及活動規則之權利，並提前公告</p>
+      <p style="margin-bottom:4px">2. 因用戶填寫資料錯誤導致無法收件，本平台不負補寄責任</p>
+      <p style="margin-bottom:14px">3. 不可抗力因素（天災、物流異常等）造成延誤，本平台不負賠償責任</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第六條：爭議處理</p>
+      <p>如對交易有任何疑問或爭議，請透過官方 LINE 聯繫，本平台將於 3 個工作天內回覆處理。</p>
+    </div>
+    <button class="btn-primary" onclick="agreeTerms()" style="margin-top:20px;margin-bottom:10px">我已閱讀並同意</button>
+    <button class="btn-close" onclick="closeTermsModal()">關　閉</button>
+  </div>
+</div>
+
+<!-- 新增優惠碼 Modal -->
+<div class="modal-overlay" id="add-promo-modal">
+  <div class="result-modal">
+    <div class="result-label" style="margin-bottom:20px">新增優惠碼</div>
+    <div class="form-group">
+      <label>優惠碼（英文大寫）</label>
+      <input type="text" id="new-promo-code" placeholder="例：LUCKY2025" style="text-transform:uppercase">
+    </div>
+    <div class="form-group">
+      <label>兌換券張數</label>
+      <input type="number" id="new-promo-tickets" placeholder="3" min="1">
+    </div>
+    <div class="form-group">
+      <label>使用次數上限（留空 = 無限）</label>
+      <input type="number" id="new-promo-maxuses" placeholder="留空無限制" min="1">
+    </div>
+    <button class="btn-primary" onclick="addPromo()" style="margin-bottom:12px">新增</button>
+    <button class="btn-close" onclick="closeAddPromo()">取消</button>
+  </div>
+</div>
+
+<!-- 申請出貨確認 Modal -->
+<div class="modal-overlay" id="shipment-confirm-modal">
+  <div class="result-modal">
+    <div class="result-emoji">🚚</div>
+    <div class="result-label">確認申請出貨</div>
+    <div id="shipment-confirm-items" style="font-size:13px;color:var(--text-dim);margin:12px 0;line-height:2"></div>
+    <div id="shipment-confirm-address" style="font-size:12px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:16px;letter-spacing:1px;line-height:1.8"></div>
+    <div style="font-size:11px;color:var(--red);margin-bottom:16px;letter-spacing:1px">⚠️ 送出後地址不可更改，請確認正確</div>
+    <button class="btn-primary" onclick="confirmShipment()" style="margin-bottom:12px">確認送出</button>
+    <button class="btn-close" onclick="closeShipmentConfirm()">取消</button>
   </div>
 </div>
 
@@ -1613,6 +1733,13 @@ async function loadPrizes() {
   }
 }
 
+async function loadMyShipments() {
+  try {
+    state.shipments = await dbSelect('shipment_requests', `user_id=eq.${state.user.id}&order=created_at.desc`);
+    renderShipmentHistory();
+  } catch(e) {}
+}
+
 async function loadMyOrders() {
   try {
     const rows = await dbSelect('spins', `user_id=eq.${state.user.id}&order=created_at.desc`);
@@ -1646,7 +1773,7 @@ function switchSub(tab) {
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
   if (tab === 'prizes') renderPrizes();
-  if (tab === 'profile') { renderProfile(); renderOrders(); }
+  if (tab === 'profile') { renderProfile(); renderOrders(); loadMyShipments(); }
 }
 
 // ══════════════════════════════════════
@@ -1713,7 +1840,7 @@ async function doSpin() {
       prize_id: prize.id,
       prize_name: prize.name,
       is_physical: prize.isPhysical,
-      status: prize.isPhysical ? 'pending' : 'done'
+      status: prize.isPhysical ? 'collected' : 'done'
     });
 
     // 6. 重新載入訂單
@@ -1806,23 +1933,8 @@ function renderProfile() {
 }
 
 function renderOrders() {
-  const list = document.getElementById('orders-list');
-  const orders = (state.orders || []).filter(o => o.is_physical);
-  if (!orders.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無實體商品中獎紀錄</div>';
-    return;
-  }
-  list.innerHTML = orders.map(o => `
-    <div class="order-card">
-      <div>
-        <div class="order-prize">${o.prize_name}</div>
-        <div class="order-date">${new Date(o.created_at).toLocaleDateString('zh-TW')}</div>
-      </div>
-      <div class="status-badge ${o.status === 'pending' ? 'status-pending' : 'status-shipped'}">
-        ${o.status === 'pending' ? '待出貨' : '已出貨'}
-      </div>
-    </div>
-  `).join('');
+  renderCollected();
+  renderShipmentHistory();
 }
 
 async function showEditProfile() {
@@ -1936,13 +2048,17 @@ async function loadAdminData() {
 }
 
 function switchAdminTab(tab) {
-  ['orders','prizes','users','settings'].forEach(t => {
-    document.getElementById('admin-'+t).style.display = t === tab ? 'block' : 'none';
-    document.getElementById('atab-'+t).classList.toggle('active', t === tab);
+  ['orders','prizes','users','wishes','promos','settings'].forEach(t => {
+    const el = document.getElementById('admin-'+t);
+    if(el) el.style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById('atab-'+t);
+    if(btn) btn.classList.toggle('active', t === tab);
   });
   if (tab === 'orders') renderAdminOrders();
   if (tab === 'prizes') renderAdminPrizes();
   if (tab === 'users') loadAndRenderAdminUsers();
+  if (tab === 'wishes') loadAdminWishes();
+  if (tab === 'promos') loadAdminPromos();
   if (tab === 'settings') loadSettings();
 }
 
@@ -1976,9 +2092,41 @@ async function renderAdminOrders() {
     if (currentOrderFilter === 'pending') filter += '&status=eq.pending';
     if (currentOrderFilter === 'shipped') filter += '&status=eq.shipped';
 
+    // 出貨申請區塊
+    const shipReqs = await dbSelect('shipment_requests', 'order=created_at.desc');
+    let shipHtml = '';
+    if (shipReqs.length) {
+      shipHtml = `<div class="section-title" style="margin-bottom:12px">出貨申請</div>` +
+        shipReqs.map(s => `
+        <div class="admin-order-card" style="margin-bottom:10px">
+          <div class="admin-order-top">
+            <div style="flex:1">
+              <div class="admin-order-name">${s.user_name}</div>
+              <div class="admin-order-meta">
+                🏪 ${s.convenience_store || '未填'} ／ ${s.store_name || '未填'}<br>
+                📦 ${Object.entries(s.items||{}).map(([n,q])=>n+' ×'+q).join('、')}<br>
+                🕐 ${new Date(s.created_at).toLocaleString('zh-TW')}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+              <div class="status-badge ${s.status==='pending'?'status-pending':'status-shipped'}">
+                ${s.status==='pending'?'待出貨':'已寄出'}
+              </div>
+              ${s.status==='pending'?`<button class="btn-ship" onclick="markShipmentDone('${s.id}')">確認出貨</button>`:''}
+            </div>
+          </div>
+        </div>`).join('');
+      shipHtml += `<div class="section-title" style="margin:16px 0 12px">抽獎紀錄</div>`;
+    }
+
     const spins = await dbSelect('spins', filter);
-    if (!spins.length) {
+    if (!spins.length && !shipReqs.length) {
       list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">無訂單紀錄</div>';
+      return;
+    }
+    if (!spins.length) {
+      list.innerHTML = shipHtml + '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">無抽獎紀錄</div>';
+      updateAdminStats();
       return;
     }
 
@@ -1988,7 +2136,7 @@ async function renderAdminOrders() {
     const userMap = {};
     usersData.forEach(u => userMap[u.id] = u);
 
-    list.innerHTML = spins.map(o => {
+    list.innerHTML = shipHtml + spins.map(o => {
       const u = userMap[o.user_id] || {};
       return `
       <div class="admin-order-card">
@@ -2014,6 +2162,19 @@ async function renderAdminOrders() {
     updateAdminStats();
   } catch(e) {
     list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗：${e.message}</div>`;
+  }
+}
+
+async function markShipmentDone(reqId) {
+  showLoading('更新中…');
+  try {
+    await dbUpdate('shipment_requests', `id=eq.${reqId}`, { status: 'shipped' });
+    // 把相關 spins 改為 shipped
+    await dbUpdate('spins', `status=eq.requested`, { status: 'shipped' });
+    hideLoading();
+    renderAdminOrders();
+  } catch(e) {
+    showError('更新失敗：' + e.message);
   }
 }
 
@@ -2195,6 +2356,318 @@ async function refreshAll() {
   } catch(e) {
     btn.textContent = '↻ 更新';
     btn.style.opacity = '1';
+  }
+}
+
+// ══════════════════════════════════════
+// 條款
+// ══════════════════════════════════════
+function showTermsModal() {
+  document.getElementById('terms-modal').classList.add('show');
+}
+function closeTermsModal() {
+  document.getElementById('terms-modal').classList.remove('show');
+}
+function agreeTerms() {
+  document.getElementById('terms-check').checked = true;
+  closeTermsModal();
+}
+function checkTermsThenSpin() {
+  const checked = document.getElementById('terms-check').checked;
+  if (!checked) {
+    alert('請先閱讀並同意服務條款');
+    return;
+  }
+  doSpin();
+}
+
+// ══════════════════════════════════════
+// 優惠碼
+// ══════════════════════════════════════
+async function redeemPromo() {
+  const code = document.getElementById('promo-input').value.trim().toUpperCase();
+  if (!code) return alert('請輸入優惠碼');
+  showLoading('驗證優惠碼…');
+  try {
+    // 查優惠碼
+    const promos = await dbSelect('promo_codes', `code=eq.${code}&is_active=eq.true`);
+    if (!promos.length) throw new Error('優惠碼不存在或已停用');
+    const promo = promos[0];
+
+    // 檢查使用次數上限
+    if (promo.max_uses !== null && promo.used_count >= promo.max_uses) throw new Error('此優惠碼已達使用上限');
+
+    // 檢查是否已使用過
+    const uses = await dbSelect('promo_uses', `user_id=eq.${state.user.id}&promo_id=eq.${promo.id}`);
+    if (uses.length) throw new Error('您已使用過此優惠碼');
+
+    // 發券
+    const newTickets = (state.user.tickets || 0) + promo.tickets;
+    await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: newTickets });
+    await dbInsert('promo_uses', { user_id: state.user.id, promo_id: promo.id });
+    await dbUpdate('promo_codes', `id=eq.${promo.id}`, { used_count: promo.used_count + 1 });
+
+    state.user.tickets = newTickets;
+    updateTicketCount();
+    document.getElementById('promo-input').value = '';
+    document.getElementById('no-ticket-msg').style.display = 'none';
+    hideLoading();
+    closePurchase();
+    alert(`✅ 優惠碼兌換成功！獲得 ${promo.tickets} 張抽獎券`);
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+// ══════════════════════════════════════
+// 許願池
+// ══════════════════════════════════════
+async function submitWish() {
+  const content = document.getElementById('wish-input').value.trim();
+  if (!content) return alert('請輸入許願內容');
+  showLoading('送出許願…');
+  try {
+    await dbInsert('wishlists', {
+      user_id: state.user.id,
+      user_name: state.user.name,
+      content
+    });
+    document.getElementById('wish-input').value = '';
+    hideLoading();
+    alert('🌟 許願成功！我們會認真考慮的');
+  } catch(e) {
+    showError('送出失敗：' + e.message);
+  }
+}
+
+// ══════════════════════════════════════
+// 累積獎品 & 申請出貨
+// ══════════════════════════════════════
+function renderCollected() {
+  const list = document.getElementById('collected-list');
+  const btn = document.getElementById('apply-ship-btn');
+  const collected = (state.orders || []).filter(o => o.is_physical && o.status === 'collected');
+
+  if (!collected.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無累積獎品</div>';
+    if(btn) btn.style.display = 'none';
+    return;
+  }
+
+  // 統計品項
+  const itemMap = {};
+  collected.forEach(o => {
+    itemMap[o.prize_name] = (itemMap[o.prize_name] || 0) + 1;
+  });
+
+  list.innerHTML = Object.entries(itemMap).map(([name, qty]) => `
+    <div class="order-card">
+      <div>
+        <div class="order-prize">${name}</div>
+        <div class="order-date">數量：${qty} 件</div>
+      </div>
+      <div class="status-badge status-pending">待領取</div>
+    </div>
+  `).join('');
+
+  if(btn) btn.style.display = 'block';
+}
+
+function renderShipmentHistory() {
+  const list = document.getElementById('shipment-list');
+  // 從 state 取出（需要另外載入）
+  if (!state.shipments || !state.shipments.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無申請紀錄</div>';
+    return;
+  }
+  list.innerHTML = state.shipments.map(s => `
+    <div class="order-card">
+      <div>
+        <div class="order-prize">出貨申請</div>
+        <div class="order-date">${new Date(s.created_at).toLocaleDateString('zh-TW')}</div>
+      </div>
+      <div class="status-badge ${s.status === 'pending' ? 'status-pending' : 'status-shipped'}">
+        ${s.status === 'pending' ? '處理中' : '已寄出'}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function applyShipment() {
+  if (!state.user.convenience_store || !state.user.store_name) {
+    alert('請先至個人資料填寫超商與門市名稱');
+    showEditProfile();
+    return;
+  }
+  const collected = (state.orders || []).filter(o => o.is_physical && o.status === 'collected');
+  if (!collected.length) return alert('目前沒有累積獎品可申請');
+
+  // 統計品項
+  const itemMap = {};
+  collected.forEach(o => { itemMap[o.prize_name] = (itemMap[o.prize_name] || 0) + 1; });
+  const itemText = Object.entries(itemMap).map(([n,q]) => `・${n} × ${q}`).join('<br>');
+
+  document.getElementById('shipment-confirm-items').innerHTML = itemText;
+  document.getElementById('shipment-confirm-address').innerHTML =
+    `超商：${state.user.convenience_store}<br>門市：${state.user.store_name}<br>收件人：${state.user.name}`;
+  document.getElementById('shipment-confirm-modal').classList.add('show');
+}
+
+function closeShipmentConfirm() {
+  document.getElementById('shipment-confirm-modal').classList.remove('show');
+}
+
+async function confirmShipment() {
+  showLoading('送出申請…');
+  try {
+    const collected = (state.orders || []).filter(o => o.is_physical && o.status === 'collected');
+    const itemMap = {};
+    collected.forEach(o => { itemMap[o.prize_name] = (itemMap[o.prize_name] || 0) + 1; });
+
+    // 建立出貨申請
+    await dbInsert('shipment_requests', {
+      user_id: state.user.id,
+      user_name: state.user.name,
+      convenience_store: state.user.convenience_store,
+      store_name: state.user.store_name,
+      items: itemMap,
+      status: 'pending'
+    });
+
+    // 把所有 collected 狀態改為 requested
+    for (const o of collected) {
+      await dbUpdate('spins', `id=eq.${o.id}`, { status: 'requested' });
+    }
+
+    await loadMyOrders();
+    if (!state.shipments) state.shipments = [];
+    state.shipments = await dbSelect('shipment_requests', `user_id=eq.${state.user.id}&order=created_at.desc`);
+
+    closeShipmentConfirm();
+    hideLoading();
+    renderCollected();
+    renderShipmentHistory();
+    alert('✅ 申請送出！賣家確認後將於 3-5 個工作天安排寄送');
+  } catch(e) {
+    showError('申請失敗：' + e.message);
+  }
+}
+
+// ══════════════════════════════════════
+// 後台：許願池
+// ══════════════════════════════════════
+async function loadAdminWishes() {
+  const list = document.getElementById('admin-wishes-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">載入中…</div>';
+  try {
+    const wishes = await dbSelect('wishlists', 'order=created_at.desc');
+    if (!wishes.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">尚無許願紀錄</div>';
+      return;
+    }
+    list.innerHTML = wishes.map(w => `
+      <div class="admin-order-card">
+        <div class="admin-order-top">
+          <div style="flex:1">
+            <div class="admin-order-name" style="font-size:14px">${w.content}</div>
+            <div class="admin-order-meta">👤 ${w.user_name} ／ ${new Date(w.created_at).toLocaleDateString('zh-TW')}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗</div>`;
+  }
+}
+
+// ══════════════════════════════════════
+// 後台：優惠碼管理
+// ══════════════════════════════════════
+async function loadAdminPromos() {
+  const list = document.getElementById('admin-promos-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">載入中…</div>';
+  try {
+    const promos = await dbSelect('promo_codes', 'order=created_at.desc');
+    if (!promos.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">尚無優惠碼</div>';
+      return;
+    }
+    list.innerHTML = promos.map(p => `
+      <div class="admin-order-card">
+        <div class="admin-order-top">
+          <div style="flex:1">
+            <div class="admin-order-name" style="font-family:'Space Mono',monospace;font-size:16px;letter-spacing:2px">${p.code}</div>
+            <div class="admin-order-meta">
+              🎟 兌換 ${p.tickets} 張券 ／
+              使用 ${p.used_count}${p.max_uses ? ' / ' + p.max_uses : ' / 無限'} 次
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <div class="status-badge ${p.is_active ? 'status-shipped' : 'status-pending'}">${p.is_active ? '啟用' : '停用'}</div>
+            <button onclick="togglePromo('${p.id}', ${p.is_active})" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer;letter-spacing:1px">
+              ${p.is_active ? '停用' : '啟用'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗</div>`;
+  }
+}
+
+function showAddPromo() {
+  document.getElementById('new-promo-code').value = '';
+  document.getElementById('new-promo-tickets').value = '';
+  document.getElementById('new-promo-maxuses').value = '';
+  document.getElementById('add-promo-modal').classList.add('show');
+}
+function closeAddPromo() {
+  document.getElementById('add-promo-modal').classList.remove('show');
+}
+
+async function addPromo() {
+  const code = document.getElementById('new-promo-code').value.trim().toUpperCase();
+  const tickets = parseInt(document.getElementById('new-promo-tickets').value) || 0;
+  const maxUses = document.getElementById('new-promo-maxuses').value.trim();
+  if (!code) return alert('請填寫優惠碼');
+  if (!tickets) return alert('請填寫券張數');
+  showLoading('新增中…');
+  try {
+    await dbInsert('promo_codes', {
+      code,
+      tickets,
+      max_uses: maxUses ? parseInt(maxUses) : null,
+      used_count: 0,
+      is_active: true
+    });
+    closeAddPromo();
+    loadAdminPromos();
+    hideLoading();
+  } catch(e) {
+    showError('新增失敗：' + e.message);
+  }
+}
+
+async function togglePromo(promoId, currentActive) {
+  showLoading('更新中…');
+  try {
+    await dbUpdate('promo_codes', `id=eq.${promoId}`, { is_active: !currentActive });
+    hideLoading();
+    loadAdminPromos();
+  } catch(e) {
+    showError('更新失敗：' + e.message);
+  }
+}
+
+// 後台出貨申請顯示（在 renderAdminOrders 裡加入出貨申請）
+async function renderAdminShipments() {
+  // 讀取所有待處理的出貨申請
+  try {
+    const requests = await dbSelect('shipment_requests', 'order=created_at.desc');
+    return requests;
+  } catch(e) {
+    return [];
   }
 }
 
