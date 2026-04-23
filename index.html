@@ -493,6 +493,20 @@
   .prize-stock.zero { color: var(--red); }
   .prize-stock.unlimited { color: var(--text-dim); }
 
+  .prize-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .prize-list-item:hover { border-color: var(--gold-dim); background: var(--surface2); }
+
   /* ── PROFILE PAGE ── */
   .profile-content {
     flex: 1;
@@ -1115,7 +1129,7 @@
 
   <div id="sub-prizes" style="flex:1;display:none;flex-direction:column">
     <div class="prizes-content">
-      <div class="prizes-grid" id="prizes-grid"></div>
+      <div id="prizes-grid"></div>
       <!-- 許願池 -->
       <div style="margin-top:28px">
         <div class="section-title">🌟 許願池</div>
@@ -1335,8 +1349,26 @@
       <input type="text" id="new-prize-desc" placeholder="例：隨機3款公務員語錄貼紙">
     </div>
     <div class="form-group">
-      <label>Emoji 圖示</label>
+      <label>Emoji 圖示（無圖片時顯示）</label>
       <input type="text" id="new-prize-emoji" placeholder="🎁" style="font-size:20px">
+    </div>
+    <div class="form-group">
+      <label>獎品圖片（拖曳或點擊上傳）</label>
+      <div id="prize-drop-zone" onclick="document.getElementById('prize-img-input').click()"
+        style="border:2px dashed var(--border);border-radius:4px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px"
+        ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+        ondragleave="this.style.borderColor='var(--border)'"
+        ondrop="handlePrizeDrop(event)">
+        <div id="prize-drop-preview" style="display:none;width:100%;text-align:center">
+          <img id="prize-preview-img" style="max-height:120px;max-width:100%;border-radius:4px;object-fit:contain">
+          <div id="prize-preview-name" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>
+        </div>
+        <div id="prize-drop-hint">
+          <div style="font-size:24px">📷</div>
+          <div style="font-size:12px;color:var(--text-dim);letter-spacing:1px">拖曳圖片至此，或點擊選取</div>
+        </div>
+      </div>
+      <input type="file" id="prize-img-input" accept="image/*" style="display:none" onchange="handlePrizeFileSelect(event)">
     </div>
     <div class="form-group">
       <label>初始庫存數量</label>
@@ -1440,6 +1472,22 @@
     </div>
     <button class="btn-primary" onclick="agreeTerms()" style="margin-top:20px;margin-bottom:10px">我已閱讀並同意</button>
     <button class="btn-close" onclick="closeTermsModal()">關　閉</button>
+  </div>
+</div>
+
+<!-- 獎品詳細 Modal -->
+<div class="modal-overlay" id="prize-detail-modal">
+  <div class="result-modal">
+    <div id="prize-detail-emoji" style="font-size:56px;text-align:center;margin-bottom:12px"></div>
+    <img id="prize-detail-img" style="width:100%;max-height:200px;object-fit:contain;border-radius:4px;margin-bottom:12px;display:none">
+    <div class="result-label">獎品詳情</div>
+    <div class="result-name" id="prize-detail-name">—</div>
+    <div class="result-desc" id="prize-detail-desc" style="margin-bottom:8px">—</div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:20px;padding:10px;background:var(--surface2);border-radius:2px">
+      <span id="prize-detail-type">—</span>
+      <span id="prize-detail-stock" class="prize-stock">—</span>
+    </div>
+    <button class="btn-close" onclick="document.getElementById('prize-detail-modal').classList.remove('show')">關　閉</button>
   </div>
 </div>
 
@@ -1922,23 +1970,38 @@ function spawnConfetti() {
 // ══════════════════════════════════════
 function renderPrizes() {
   const grid = document.getElementById('prizes-grid');
-  const physical = state.prizes.filter(p => !p.isUnlimited);
-  const unlimited = state.prizes.filter(p => p.isUnlimited);
-  grid.innerHTML = physical.map(p => `
-    <div class="prize-card">
-      <div class="prize-emoji">${p.emoji}</div>
-      <div class="prize-name">${p.name}</div>
-      <div class="prize-stock ${p.stock === 0 ? 'zero' : ''}">
-        剩餘 <strong>${p.stock}</strong> 件
+  const allPrizes = state.prizes;
+  grid.innerHTML = allPrizes.map(p => `
+    <div class="prize-list-item" onclick="showPrizeDetail('${p.id}')">
+      <div style="display:flex;align-items:center;gap:12px;flex:1">
+        <div style="font-size:22px;flex-shrink:0">${p.emoji && p.emoji.startsWith('http') ? '' : p.emoji}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">${p.name}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px">${p.isPhysical ? '🚚 實體商品' : '💻 虛擬獎品'}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="prize-stock ${p.stock === 0 && !p.isUnlimited ? 'zero' : p.isUnlimited ? 'unlimited' : ''}">
+          ${p.isUnlimited ? '無限' : `剩 ${p.stock}`}
+        </div>
+        <div style="color:var(--text-dim);font-size:16px">›</div>
       </div>
     </div>
-  `).join('') + unlimited.map(p => `
-    <div class="prize-card">
-      <div class="prize-emoji">${p.emoji}</div>
-      <div class="prize-name">${p.name}</div>
-      <div class="prize-stock unlimited">無限</div>
-    </div>
   `).join('');
+}
+
+function showPrizeDetail(prizeId) {
+  const p = state.prizes.find(x => x.id === prizeId);
+  if (!p) return;
+  document.getElementById('prize-detail-emoji').textContent = p.emoji && !p.emoji.startsWith('http') ? p.emoji : '';
+  document.getElementById('prize-detail-img').src = p.emoji && p.emoji.startsWith('http') ? p.emoji : '';
+  document.getElementById('prize-detail-img').style.display = p.emoji && p.emoji.startsWith('http') ? 'block' : 'none';
+  document.getElementById('prize-detail-name').textContent = p.name;
+  document.getElementById('prize-detail-desc').textContent = p.desc || '暫無說明';
+  document.getElementById('prize-detail-stock').textContent = p.isUnlimited ? '無限' : `剩餘 ${p.stock} 件`;
+  document.getElementById('prize-detail-stock').className = p.stock === 0 && !p.isUnlimited ? 'prize-stock zero' : 'prize-stock';
+  document.getElementById('prize-detail-type').textContent = p.isPhysical ? '🚚 實體商品' : '💻 虛擬獎品';
+  document.getElementById('prize-detail-modal').classList.add('show');
 }
 
 // ══════════════════════════════════════
@@ -2313,6 +2376,8 @@ async function deletePrize(prizeId) {
   }
 }
 
+let prizeImageFile = null;
+
 function showAddPrize() {
   document.getElementById('new-prize-name').value = '';
   document.getElementById('new-prize-desc').value = '';
@@ -2320,7 +2385,54 @@ function showAddPrize() {
   document.getElementById('new-prize-stock').value = '10';
   document.getElementById('new-prize-weight').value = '10';
   document.getElementById('new-prize-physical').checked = true;
+  prizeImageFile = null;
+  document.getElementById('prize-drop-preview').style.display = 'none';
+  document.getElementById('prize-drop-hint').style.display = 'block';
+  document.getElementById('prize-img-input').value = '';
   document.getElementById('add-prize-modal').classList.add('show');
+}
+
+function handlePrizeDrop(event) {
+  event.preventDefault();
+  document.getElementById('prize-drop-zone').style.borderColor = 'var(--border)';
+  const file = event.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    setPrizeImage(file);
+  }
+}
+
+function handlePrizeFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) setPrizeImage(file);
+}
+
+function setPrizeImage(file) {
+  prizeImageFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('prize-preview-img').src = e.target.result;
+    document.getElementById('prize-preview-name').textContent = file.name;
+    document.getElementById('prize-drop-preview').style.display = 'block';
+    document.getElementById('prize-drop-hint').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadPrizeImage(file, prizeName) {
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${prizeName.replace(/\s/g,'_')}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/prizes/${fileName}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${state.token}`,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return `${SUPABASE_URL}/storage/v1/object/public/prizes/${fileName}`;
 }
 
 function closeAddPrize() {
@@ -2337,10 +2449,16 @@ async function addPrize() {
   if (!name) return alert('請填寫獎品名稱');
   showLoading('新增獎品…');
   try {
+    let imageUrl = emoji;
+    // 如果有選圖片，先上傳
+    if (prizeImageFile) {
+      showLoading('上傳圖片中…');
+      imageUrl = await uploadPrizeImage(prizeImageFile, name);
+    }
     await dbInsert('prizes', {
       name,
       description: desc,
-      image_url: emoji,
+      image_url: imageUrl,
       stock,
       is_unlimited: false,
       is_free_spin: false,
