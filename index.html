@@ -2810,9 +2810,13 @@ async function triggerReferralReward() {
 function shareResult() {
   // 取得獎品資料（從 state 拿正確名稱，不從DOM取）
   const prizeName = document.getElementById('result-name').textContent;
-  const prizeEmojiEl = document.getElementById('result-emoji').textContent;
-  const prizeImgEl = document.getElementById('result-img');
-  const hasImg = prizeImgEl && prizeImgEl.style.display !== 'none' && prizeImgEl.src;
+  // emoji：只取非URL的文字，若是URL就用預設
+  const rawEmoji = document.getElementById('result-emoji').textContent;
+  const prizeEmojiEl = (rawEmoji && !rawEmoji.startsWith('http') && rawEmoji.trim() !== '') ? rawEmoji : '🎁';
+  // 取得當前抽到的獎品圖片
+  const currentPrize = state.prizes.find(p => p.name === prizeName);
+  const prizeImgUrl = currentPrize && currentPrize.emoji && currentPrize.emoji.startsWith('http') ? currentPrize.emoji : null;
+  const hasImg = !!prizeImgUrl;
   const inviteCode = state.user?.invite_code || '';
 
   const canvas = document.createElement('canvas');
@@ -2913,7 +2917,7 @@ function shareResult() {
         drawEmoji();
         finishCard();
       };
-      img.src = prizeImgEl.src;
+      img.src = prizeImgUrl;
     } else {
       drawEmoji();
       finishCard();
@@ -2924,7 +2928,7 @@ function shareResult() {
     ctx.font = '88px serif';
     ctx.textAlign = 'center';
     ctx.letterSpacing = '0px';
-    ctx.fillText(prizeEmojiEl.startsWith('http') ? '🎁' : prizeEmojiEl, 300, 255);
+    ctx.fillText(prizeEmojiEl, 300, 255);
   }
 
   function finishCard() {
