@@ -1297,17 +1297,6 @@
         </div>
       </div>
 
-      <div class="settings-section">
-        <div class="section-title">LINE 官方帳號</div>
-        <div class="setting-row">
-          <div>
-            <div class="setting-label">LINE ID</div>
-            <div class="setting-hint">用戶中獎後顯示的聯絡方式</div>
-          </div>
-          <input type="text" id="setting-line" placeholder="@yourlineid" class="setting-input" style="width:130px">
-        </div>
-      </div>
-
       <button class="btn-primary" onclick="saveSettings()" style="width:100%;margin-top:8px">儲存設定</button>
 
       <div class="settings-section" style="margin-top:24px">
@@ -1703,11 +1692,29 @@ async function enterApp() {
   showPage('page-app');
   await loadPrizes();
   await loadMyOrders();
+  await loadAppSettings();
   updateTicketCount();
   renderPrizes();
   renderProfile();
   renderOrders();
   switchSub('gacha');
+}
+
+async function loadAppSettings() {
+  try {
+    const rows = await dbSelect('app_settings', '');
+    if (rows.length) {
+      sysSettings.notice = rows[0].notice || '';
+      sysSettings.paused = rows[0].paused || false;
+      updateNoticeBanner();
+      // 暫停抽獎
+      const btn = document.getElementById('spin-btn');
+      if (btn && sysSettings.paused) {
+        btn.disabled = true;
+        btn.textContent = '暫停中';
+      }
+    }
+  } catch(e) {}
 }
 
 function doLogout() {
@@ -2811,22 +2818,49 @@ async function renderAdminShipments() {
   }
 }
 
-function loadSettings() {
+async function loadSettings() {
+  // 從 Supabase 載入公告
+  try {
+    const rows = await dbSelect('app_settings', '');
+    if (rows.length) {
+      const s = rows[0];
+      sysSettings.notice = s.notice || '';
+      sysSettings.paused = s.paused || false;
+    }
+  } catch(e) {}
   document.getElementById('setting-price').value = sysSettings.price;
   document.getElementById('setting-daily-limit').value = sysSettings.dailyLimit;
   document.getElementById('setting-notice').value = sysSettings.notice;
-  document.getElementById('setting-line').value = sysSettings.lineId;
   document.getElementById('setting-pause').checked = sysSettings.paused;
+  updateNoticeBanner();
 }
 
-function saveSettings() {
+async function saveSettings() {
   sysSettings.price = parseInt(document.getElementById('setting-price').value) || 100;
   sysSettings.dailyLimit = parseInt(document.getElementById('setting-daily-limit').value) || 1;
   sysSettings.notice = document.getElementById('setting-notice').value;
-  sysSettings.lineId = document.getElementById('setting-line').value;
-  // 同步公告到前台
-  updateNoticeBanner();
-  alert('✅ 設定已儲存');
+  sysSettings.paused = document.getElementById('setting-pause').checked;
+  showLoading('儲存中…');
+  try {
+    // 存到 Supabase app_settings
+    const rows = await dbSelect('app_settings', '');
+    if (rows.length) {
+      await dbUpdate('app_settings', `id=eq.${rows[0].id}`, {
+        notice: sysSettings.notice,
+        paused: sysSettings.paused
+      });
+    } else {
+      await dbInsert('app_settings', {
+        notice: sysSettings.notice,
+        paused: sysSettings.paused
+      });
+    }
+    updateNoticeBanner();
+    hideLoading();
+    alert('✅ 設定已儲存');
+  } catch(e) {
+    showError('儲存失敗：' + e.message);
+  }
 }
 
 function updateNoticeBanner() {
