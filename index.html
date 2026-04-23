@@ -2534,8 +2534,10 @@ function setPrizeImage(file) {
 }
 
 async function uploadPrizeImage(file, prizeName) {
-  const ext = file.name.split('.').pop();
-  const fileName = `${Date.now()}_${prizeName.replace(/\s/g,'_')}.${ext}`;
+  const ext = file.name.split('.').pop().toLowerCase();
+  // 移除所有非英數字元，避免中文或特殊符號造成錯誤
+  const safeName = Date.now() + '_prize.' + ext;
+  const fileName = safeName;
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/prizes/${fileName}`, {
     method: 'POST',
     headers: {
