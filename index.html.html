@@ -1,0 +1,2701 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>命運膠囊</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0a;
+    --surface: #1a1814;
+    --surface2: #242018;
+    --gold: #d4a843;
+    --gold-light: #f0c96a;
+    --gold-dim: #7a5e20;
+    --red: #c94040;
+    --green: #4a9e6b;
+    --text: #e8e0cc;
+    --text-dim: #8a7f6a;
+    --border: #3a3020;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Serif TC', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* ── LOGIN PAGE ── */
+  #page-login {
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at 20% 50%, #2a1f0a 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, #1a1000 0%, transparent 50%),
+      var(--bg);
+  }
+
+  .login-box {
+    width: 90%;
+    max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 48px 36px;
+    position: relative;
+  }
+
+  .login-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .login-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gold);
+    text-align: center;
+    letter-spacing: 6px;
+    margin-bottom: 8px;
+  }
+
+  .login-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 36px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .form-group input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus { border-color: var(--gold-dim); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--gold);
+    color: #0f0e0a;
+    border: none;
+    border-radius: 2px;
+    padding: 14px;
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover { background: var(--gold-light); }
+
+  .login-switch {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .login-switch a {
+    color: var(--gold);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 4px;
+  }
+
+  .ticket-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+  }
+
+  .ticket-badge .add-btn {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0 0 4px;
+    transition: color 0.2s;
+  }
+
+  .ticket-badge .add-btn:hover { color: var(--gold-light); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    display: flex;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+  }
+
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 14px;
+    color: var(--text-dim);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-top: 2px solid transparent;
+  }
+
+  .nav-btn.active {
+    color: var(--gold);
+    border-top-color: var(--gold);
+  }
+
+  /* ── GACHA PAGE ── */
+  .gacha-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 20px;
+    gap: 32px;
+  }
+
+  .machine-wrap {
+    position: relative;
+    width: 260px;
+    height: 280px;
+  }
+
+  .machine-body {
+    width: 260px;
+    height: 280px;
+    background: linear-gradient(160deg, #2a2418 0%, #1a1510 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 8px 8px 4px 4px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 0 40px rgba(212, 168, 67, 0.1),
+      inset 0 1px 0 rgba(212, 168, 67, 0.2);
+  }
+
+  .machine-glass {
+    position: absolute;
+    top: 20px; left: 20px; right: 20px;
+    height: 160px;
+    background: radial-gradient(ellipse at 30% 30%, rgba(212,168,67,0.08) 0%, rgba(0,0,0,0.4) 100%);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .balls-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    justify-content: center;
+  }
+
+  .ball {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #f0c96a, #c4832a);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .ball:nth-child(2) { animation-delay: 0.5s; background: radial-gradient(circle at 35% 35%, #e87070, #8a2020); }
+  .ball:nth-child(3) { animation-delay: 1s; background: radial-gradient(circle at 35% 35%, #70a0e8, #204080); }
+  .ball:nth-child(4) { animation-delay: 1.5s; background: radial-gradient(circle at 35% 35%, #70e8a0, #208040); }
+  .ball:nth-child(5) { animation-delay: 0.8s; }
+  .ball:nth-child(6) { animation-delay: 1.3s; background: radial-gradient(circle at 35% 35%, #e0b0f0, #7030a0); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .machine-slot {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 30px;
+    background: #0a0806;
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+  }
+
+  .machine-label {
+    position: absolute;
+    bottom: 62px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: var(--gold-dim);
+    letter-spacing: 3px;
+  }
+
+  /* Spinning animation */
+  @keyframes spin-shake {
+    0% { transform: rotate(0deg) scale(1); }
+    20% { transform: rotate(-5deg) scale(1.02); }
+    40% { transform: rotate(5deg) scale(1.02); }
+    60% { transform: rotate(-3deg) scale(1.01); }
+    80% { transform: rotate(3deg) scale(1.01); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+
+  .machine-body.spinning { animation: spin-shake 0.6s ease-in-out; }
+
+  .spin-btn {
+    width: 200px;
+    background: linear-gradient(135deg, var(--gold) 0%, #b88a30 100%);
+    color: #0f0e0a;
+    border: none;
+    border-radius: 2px;
+    padding: 16px;
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(212, 168, 67, 0.3);
+  }
+
+  .spin-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(212, 168, 67, 0.4);
+  }
+
+  .spin-btn:disabled {
+    background: var(--surface2);
+    color: var(--text-dim);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .no-ticket-msg {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .no-ticket-msg a {
+    color: var(--gold);
+    cursor: pointer;
+  }
+
+  /* ── RESULT MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .result-modal {
+    background: var(--surface);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    padding: 40px 32px;
+    width: 90%;
+    max-width: 340px;
+    text-align: center;
+    position: relative;
+    animation: modal-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes modal-in {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .result-modal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .result-emoji { font-size: 56px; margin-bottom: 16px; }
+
+  .result-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .result-name {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .result-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 24px;
+  }
+
+  .result-note {
+    font-size: 12px;
+    color: var(--red);
+    background: rgba(201, 64, 64, 0.1);
+    border: 1px solid rgba(201, 64, 64, 0.3);
+    border-radius: 2px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+
+  .btn-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 2px;
+    padding: 10px 28px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-close:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* ── PRIZES PAGE ── */
+  .prizes-content {
+    flex: 1;
+    padding: 24px 16px;
+    overflow-y: auto;
+  }
+
+  .prizes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .prize-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .prize-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  .prize-emoji { font-size: 36px; margin-bottom: 10px; }
+
+  .prize-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .prize-stock {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+  }
+
+  .prize-stock.zero { color: var(--red); }
+  .prize-stock.unlimited { color: var(--text-dim); }
+
+  /* ── PROFILE PAGE ── */
+  .profile-content {
+    flex: 1;
+    padding: 24px 16px;
+    overflow-y: auto;
+  }
+
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-section { margin-bottom: 32px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .info-label { color: var(--text-dim); font-size: 12px; letter-spacing: 1px; }
+  .info-value { color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; }
+
+  .btn-edit {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    border-radius: 2px;
+    padding: 6px 16px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-edit:hover { border-color: var(--gold); }
+
+  .order-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .order-prize { font-size: 14px; font-weight: 700; }
+  .order-date { font-size: 11px; color: var(--text-dim); font-family: 'Space Mono', monospace; margin-top: 4px; }
+
+  .status-badge {
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .status-pending {
+    background: rgba(212, 168, 67, 0.15);
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+  }
+
+  .status-shipped {
+    background: rgba(74, 158, 107, 0.15);
+    color: var(--green);
+    border: 1px solid rgba(74, 158, 107, 0.4);
+  }
+
+  /* ── ADMIN PAGE ── */
+  .admin-content {
+    flex: 1;
+    padding: 24px 16px;
+    overflow-y: auto;
+  }
+
+  .admin-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .admin-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 10px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .admin-tab.active {
+    background: var(--gold);
+    color: #0f0e0a;
+    font-weight: 700;
+  }
+
+  .admin-order-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+
+  .admin-order-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .admin-order-name { font-size: 15px; font-weight: 700; }
+  .admin-order-meta { font-size: 11px; color: var(--text-dim); line-height: 1.8; font-family: 'Space Mono', monospace; }
+
+  .btn-ship {
+    background: var(--green);
+    border: none;
+    color: white;
+    border-radius: 2px;
+    padding: 8px 16px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ship:hover { opacity: 0.8; }
+
+  .prize-admin-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .prize-admin-emoji { font-size: 28px; }
+
+  .prize-admin-info { flex: 1; }
+  .prize-admin-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .prize-admin-stock { font-size: 12px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+
+  .stock-controls { display: flex; align-items: center; gap: 8px; }
+
+  .stock-btn {
+    width: 28px; height: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    border-radius: 2px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .stock-btn:hover { border-color: var(--gold-dim); }
+
+  .stock-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    color: var(--gold);
+    min-width: 32px;
+    text-align: center;
+  }
+
+  /* ── ADMIN STATS ── */
+  .admin-stat-box {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .admin-stat-box:last-child { border-right: none; }
+  .admin-stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .admin-stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .filter-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #0f0e0a;
+    font-weight: 700;
+  }
+
+  .btn-add-prize {
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--gold-dim);
+    color: var(--gold);
+    border-radius: 4px;
+    padding: 12px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+  }
+  .btn-add-prize:hover { border-color: var(--gold); background: rgba(212,168,67,0.05); }
+
+  .user-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .user-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .user-meta { font-size: 11px; color: var(--text-dim); font-family: 'Space Mono', monospace; line-height: 1.7; }
+  .user-tickets {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    background: rgba(212,168,67,0.1);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  .settings-section { margin-bottom: 28px; }
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .setting-label { font-size: 14px; margin-bottom: 3px; }
+  .setting-hint { font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px; }
+  .setting-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    text-align: right;
+  }
+  .setting-input:focus { border-color: var(--gold-dim); }
+
+  .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer;
+    inset: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    transition: 0.3s;
+  }
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; bottom: 3px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  .toggle input:checked + .toggle-slider { background: rgba(201,64,64,0.2); border-color: var(--red); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); background: var(--red); }
+
+  /* ── NEW MACHINE ── */
+  .machine-wrap-new {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .machine-outer {
+    width: 220px;
+    background: linear-gradient(160deg, #2a2010 0%, #1a1508 100%);
+    border: 2px solid var(--gold-dim);
+    border-radius: 16px 16px 8px 8px;
+    box-shadow:
+      0 0 60px rgba(212,168,67,0.15),
+      0 20px 40px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(212,168,67,0.3);
+    overflow: hidden;
+    transition: transform 0.1s;
+  }
+
+  .machine-top {
+    background: linear-gradient(135deg, #3a2a10 0%, #2a1e08 100%);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 10px;
+    text-align: center;
+    position: relative;
+  }
+
+  .machine-top-light {
+    width: 10px; height: 10px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 auto 6px;
+    box-shadow: 0 0 12px var(--gold);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 12px var(--gold); }
+    50% { opacity: 0.4; box-shadow: 0 0 4px var(--gold-dim); }
+  }
+
+  .machine-top-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+  }
+
+  .machine-glass-new {
+    position: relative;
+    margin: 10px;
+    height: 160px;
+    background: radial-gradient(ellipse at 40% 30%, rgba(212,168,67,0.06) 0%, rgba(0,0,0,0.5) 100%);
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 50% 50% 20px 20px / 30% 30% 20px 20px;
+    overflow: hidden;
+  }
+
+  .machine-glass-inner {
+    position: absolute;
+    inset: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .glass-shine {
+    position: absolute;
+    top: 5px; left: 15px;
+    width: 40px; height: 80px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .ball-new {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2);
+    animation: bobble 2.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .b1 { background: radial-gradient(circle at 35% 35%, #f5c842, #c4832a); animation-delay: 0s; }
+  .b2 { background: radial-gradient(circle at 35% 35%, #f07070, #8a2020); animation-delay: 0.3s; }
+  .b3 { background: radial-gradient(circle at 35% 35%, #70a8f0, #204090); animation-delay: 0.6s; }
+  .b4 { background: radial-gradient(circle at 35% 35%, #70e8a0, #208050); animation-delay: 0.9s; }
+  .b5 { background: radial-gradient(circle at 35% 35%, #e090f0, #7030a0); animation-delay: 0.15s; }
+  .b6 { background: radial-gradient(circle at 35% 35%, #f0a060, #904020); animation-delay: 0.45s; }
+  .b7 { background: radial-gradient(circle at 35% 35%, #60e0e0, #208080); animation-delay: 0.75s; }
+  .b8 { background: radial-gradient(circle at 35% 35%, #f0f060, #808020); animation-delay: 1.0s; }
+
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-5px) rotate(5deg); }
+    66% { transform: translateY(3px) rotate(-3deg); }
+  }
+
+  .machine-mid-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px;
+    background: rgba(212,168,67,0.08);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    color: var(--gold-dim);
+    font-size: 11px;
+  }
+
+  .machine-chute {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 4px;
+  }
+
+  .chute-opening {
+    width: 50px; height: 24px;
+    background: #080604;
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+  }
+
+  .machine-legs {
+    display: flex;
+    justify-content: space-around;
+    padding: 0 30px 8px;
+  }
+
+  .machine-leg {
+    width: 16px; height: 20px;
+    background: linear-gradient(180deg, #2a2010, #1a1508);
+    border: 1px solid var(--border);
+    border-radius: 0 0 4px 4px;
+  }
+
+  @keyframes machine-shake {
+    0%,100% { transform: rotate(0deg) scale(1); }
+    15% { transform: rotate(-4deg) scale(1.02); }
+    30% { transform: rotate(4deg) scale(1.02); }
+    45% { transform: rotate(-2deg) scale(1.01); }
+    60% { transform: rotate(2deg) scale(1.01); }
+    75% { transform: rotate(-1deg); }
+  }
+
+  .machine-outer.spinning { animation: machine-shake 0.7s ease-in-out; }
+  .machine-outer.spinning .top-light { background: var(--gold-light); }
+
+  .result-ball-out {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    margin-top: -8px;
+    opacity: 0;
+    transform: scale(0) translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 20px rgba(212,168,67,0.4);
+  }
+
+  .result-ball-out.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  /* ── CONFETTI ── */
+  .confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confetti-fall 1.5s ease-in forwards;
+    pointer-events: none;
+    z-index: 300;
+  }
+
+  @keyframes confetti-fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════ -->
+<div id="page-login" class="page active">
+  <div class="login-box">
+    <div class="login-title">命運膠囊</div>
+    <div class="login-subtitle">CAPSULE OF FATE</div>
+
+    <div id="login-form">
+      <div class="form-group">
+        <label>手機號碼</label>
+        <input type="tel" id="login-phone" placeholder="0912345678">
+      </div>
+      <div class="form-group">
+        <label>密碼</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">登　入</button>
+      <div class="login-switch">還沒有帳號？<a onclick="showRegister()">立即註冊</a></div>
+    </div>
+
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label>姓名</label>
+        <input type="text" id="reg-name" placeholder="王小明">
+      </div>
+      <div class="form-group">
+        <label>手機號碼</label>
+        <input type="tel" id="reg-phone" placeholder="0912345678">
+      </div>
+      <div class="form-group">
+        <label>密碼</label>
+        <input type="password" id="reg-pass" placeholder="至少6個字元">
+      </div>
+      <button class="btn-primary" onclick="doRegister()">註　冊</button>
+      <div class="login-switch">已有帳號？<a onclick="showLogin()">返回登入</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP (GACHA)
+══════════════════════════════════════ -->
+<div id="page-app" class="page">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-title">命運膠囊</div>
+    <div class="ticket-badge">
+      🎟 <span id="ticket-count">0</span>
+      <button class="add-btn" onclick="showPurchase()" title="購買券">＋</button>
+    </div>
+  </div>
+
+  <!-- Sub Pages -->
+  <div id="sub-gacha" style="flex:1;display:flex;flex-direction:column">
+    <div class="gacha-content">
+      <div class="machine-wrap-new">
+        <!-- 機身外框 -->
+        <div class="machine-outer" id="machine">
+          <!-- 頂部裝飾 -->
+          <div class="machine-top">
+            <div class="machine-top-light" id="top-light"></div>
+            <div class="machine-top-text">LUCKY GACHA</div>
+          </div>
+          <!-- 玻璃球槽 -->
+          <div class="machine-glass-new">
+            <div class="machine-glass-inner">
+              <div class="ball-new b1"></div>
+              <div class="ball-new b2"></div>
+              <div class="ball-new b3"></div>
+              <div class="ball-new b4"></div>
+              <div class="ball-new b5"></div>
+              <div class="ball-new b6"></div>
+              <div class="ball-new b7"></div>
+              <div class="ball-new b8"></div>
+            </div>
+            <!-- 玻璃反光 -->
+            <div class="glass-shine"></div>
+          </div>
+          <!-- 中間裝飾條 -->
+          <div class="machine-mid-strip">
+            <span>🪙</span>
+            <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px">INSERT COIN</span>
+            <span>🪙</span>
+          </div>
+          <!-- 出口滑道 -->
+          <div class="machine-chute">
+            <div class="chute-opening"></div>
+          </div>
+          <!-- 底部腳架 -->
+          <div class="machine-legs">
+            <div class="machine-leg"></div>
+            <div class="machine-leg"></div>
+          </div>
+        </div>
+        <!-- 轉蛋球出口動畫 -->
+        <div class="result-ball-out" id="result-ball-out"></div>
+      </div>
+
+      <button class="spin-btn" id="spin-btn" onclick="checkTermsThenSpin()">抽　獎</button>
+
+      <div class="no-ticket-msg" id="no-ticket-msg" style="display:none">
+        票券不足——<a onclick="showPurchase()">點此購買</a>
+      </div>
+      <div style="margin-top:8px;text-align:center">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text-dim);letter-spacing:1px">
+          <input type="checkbox" id="terms-check" style="accent-color:var(--gold);width:14px;height:14px">
+          我已閱讀並同意
+          <a onclick="showTermsModal()" style="color:var(--gold);cursor:pointer">服務條款</a>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-prizes" style="flex:1;display:none;flex-direction:column">
+    <div class="prizes-content">
+      <div class="prizes-grid" id="prizes-grid"></div>
+      <!-- 許願池 -->
+      <div style="margin-top:28px">
+        <div class="section-title">🌟 許願池</div>
+        <div style="font-size:12px;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;line-height:1.8">
+          告訴我們你想要什麼獎品，我們會認真考慮補貨！
+        </div>
+        <textarea id="wish-input" placeholder="例：想要印有「依法行政」的馬克杯…" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;color:var(--text);font-family:'Noto Serif TC',serif;font-size:13px;resize:vertical;min-height:80px;outline:none;letter-spacing:1px"></textarea>
+        <button onclick="submitWish()" style="width:100%;margin-top:10px;background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:12px;font-family:'Noto Serif TC',serif;font-size:13px;letter-spacing:3px;cursor:pointer;transition:all 0.2s">許願</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-profile" style="flex:1;display:none;flex-direction:column">
+    <div class="profile-content">
+      <div class="profile-section">
+        <div class="section-title">個人資料</div>
+        <div class="info-row">
+          <span class="info-label">姓名</span>
+          <span class="info-value" id="profile-name">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">手機</span>
+          <span class="info-value" id="profile-phone">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">超商</span>
+          <span class="info-value" id="profile-store">未設定</span>
+        </div>
+        <div class="info-row" style="border:none">
+          <span class="info-label">門市</span>
+          <span class="info-value" id="profile-storename">未設定</span>
+        </div>
+        <button class="btn-edit" onclick="showEditProfile()" style="margin-top:16px">編輯資料</button>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title">我的獎品（累積中）</div>
+        <div id="collected-list">
+          <div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無累積獎品</div>
+        </div>
+        <button id="apply-ship-btn" onclick="applyShipment()" style="display:none;width:100%;margin-top:14px;background:var(--gold);color:#0f0e0a;border:none;border-radius:2px;padding:13px;font-family:'Noto Serif TC',serif;font-weight:700;font-size:14px;letter-spacing:4px;cursor:pointer">申請出貨</button>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title">出貨申請紀錄</div>
+        <div id="shipment-list">
+          <div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無申請紀錄</div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title">使用說明</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:2;letter-spacing:0.5px">
+          <p style="margin-bottom:8px">🎟 <strong style="color:var(--text)">如何開始</strong><br>購買抽獎券後，點「抽獎」按鈕參與。每日限購一張，於台灣時間 00:00 重置。</p>
+          <p style="margin-bottom:8px">🎁 <strong style="color:var(--text)">獎品累積</strong><br>抽中實體商品會累積在「我的獎品」，可等到想要的時候再一次申請出貨，節省運費。</p>
+          <p style="margin-bottom:8px">🚚 <strong style="color:var(--text)">申請出貨</strong><br>填妥超商收件資料後按「申請出貨」，賣家確認後約 3-5 個工作天到店。</p>
+          <p style="margin-bottom:8px">🌟 <strong style="color:var(--text)">許願池</strong><br>在「獎品頁面」下方可以填寫想要的獎品，賣家會參考進行補貨。</p>
+          <p>💬 <strong style="color:var(--text)">聯繫客服</strong><br>有任何問題請至官方 LINE 聯繫，將於 3 個工作天內回覆。</p>
+        </div>
+        <button onclick="showTermsModal()" style="margin-top:14px;background:none;border:1px solid var(--border);color:var(--text-dim);border-radius:2px;padding:8px 20px;font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:2px;cursor:pointer">查看服務條款</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-gacha" onclick="switchSub('gacha')">轉蛋</button>
+    <button class="nav-btn" id="nav-prizes" onclick="switchSub('prizes')">獎品</button>
+    <button class="nav-btn" id="nav-profile" onclick="switchSub('profile')">個人</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN PAGE
+══════════════════════════════════════ -->
+<div id="page-admin" class="page">
+  <div class="topbar">
+    <div class="topbar-title">⚙️ 後台管理</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="refreshAll()" id="refresh-btn" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);padding:6px 14px;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px;transition:all 0.2s">↻ 更新</button>
+      <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px">登出</button>
+    </div>
+  </div>
+
+  <!-- Admin Stats Bar -->
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface)">
+    <div class="admin-stat-box">
+      <div class="admin-stat-num" id="stat-pending">0</div>
+      <div class="admin-stat-label">待出貨</div>
+    </div>
+    <div class="admin-stat-box">
+      <div class="admin-stat-num" id="stat-shipped">0</div>
+      <div class="admin-stat-label">已出貨</div>
+    </div>
+    <div class="admin-stat-box">
+      <div class="admin-stat-num" id="stat-users">0</div>
+      <div class="admin-stat-label">用戶數</div>
+    </div>
+    <div class="admin-stat-box">
+      <div class="admin-stat-num" id="stat-spins">0</div>
+      <div class="admin-stat-label">總抽獎</div>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <!-- 4 Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="atab-orders" onclick="switchAdminTab('orders')">出貨管理</button>
+      <button class="admin-tab" id="atab-prizes" onclick="switchAdminTab('prizes')">獎品設定</button>
+      <button class="admin-tab" id="atab-users" onclick="switchAdminTab('users')">用戶列表</button>
+      <button class="admin-tab" id="atab-wishes" onclick="switchAdminTab('wishes')">許願池</button>
+      <button class="admin-tab" id="atab-promos" onclick="switchAdminTab('promos')">優惠碼</button>
+      <button class="admin-tab" id="atab-settings" onclick="switchAdminTab('settings')">系統設定</button>
+    </div>
+
+    <!-- ── TAB 1: 出貨管理 ── -->
+    <div id="admin-orders">
+      <!-- Filter -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="filter-btn active" id="filter-pending" onclick="filterOrders('pending')">待出貨</button>
+        <button class="filter-btn" id="filter-shipped" onclick="filterOrders('shipped')">已出貨</button>
+        <button class="filter-btn" id="filter-all" onclick="filterOrders('all')">全部</button>
+      </div>
+      <div id="admin-orders-list"></div>
+    </div>
+
+    <!-- ── TAB 2: 獎品設定 ── -->
+    <div id="admin-prizes" style="display:none">
+      <button class="btn-add-prize" onclick="showAddPrize()">＋ 新增獎品</button>
+      <div id="admin-prizes-list"></div>
+    </div>
+
+    <!-- ── TAB 3: 用戶列表 ── -->
+    <div id="admin-users" style="display:none">
+      <div id="admin-users-list"></div>
+    </div>
+
+    <!-- ── TAB 4: 許願池 ── -->
+    <div id="admin-wishes" style="display:none">
+      <div id="admin-wishes-list"></div>
+    </div>
+
+    <!-- ── TAB 5: 優惠碼 ── -->
+    <div id="admin-promos" style="display:none">
+      <button class="btn-add-prize" onclick="showAddPromo()">＋ 新增優惠碼</button>
+      <div id="admin-promos-list"></div>
+    </div>
+
+    <!-- ── TAB 6: 系統設定 ── -->
+    <div id="admin-settings" style="display:none">
+      <div class="settings-section">
+        <div class="section-title">抽獎券設定</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">每張券價格</div>
+            <div class="setting-hint">用戶每次購買金額（元）</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="color:var(--text-dim);font-size:13px">NT$</span>
+            <input type="number" id="setting-price" value="100" class="setting-input" style="width:80px">
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">每日限購張數</div>
+            <div class="setting-hint">同一手機號碼每天上限</div>
+          </div>
+          <input type="number" id="setting-daily-limit" value="1" class="setting-input" style="width:60px">
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-title">公告訊息</div>
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="setting-label">首頁公告文字</div>
+          <textarea id="setting-notice" placeholder="留空則不顯示公告" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;color:var(--text);font-family:'Noto Serif TC',serif;font-size:13px;resize:vertical;min-height:80px;outline:none"></textarea>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-title">LINE 官方帳號</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">LINE ID</div>
+            <div class="setting-hint">用戶中獎後顯示的聯絡方式</div>
+          </div>
+          <input type="text" id="setting-line" placeholder="@yourlineid" class="setting-input" style="width:130px">
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveSettings()" style="width:100%;margin-top:8px">儲存設定</button>
+
+      <div class="settings-section" style="margin-top:24px">
+        <div class="section-title" style="color:var(--red)">危險區域</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">暫停抽獎</div>
+            <div class="setting-hint">開啟後用戶無法抽獎</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="setting-pause" onchange="togglePause()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Prize Modal -->
+<div class="modal-overlay" id="add-prize-modal">
+  <div class="result-modal" style="max-height:90vh;overflow-y:auto">
+    <div class="result-label" style="margin-bottom:20px">新增獎品</div>
+    <div class="form-group">
+      <label>獎品名稱</label>
+      <input type="text" id="new-prize-name" placeholder="例：語錄貼紙組">
+    </div>
+    <div class="form-group">
+      <label>說明文字</label>
+      <input type="text" id="new-prize-desc" placeholder="例：隨機3款公務員語錄貼紙">
+    </div>
+    <div class="form-group">
+      <label>Emoji 圖示</label>
+      <input type="text" id="new-prize-emoji" placeholder="🎁" style="font-size:20px">
+    </div>
+    <div class="form-group">
+      <label>初始庫存數量</label>
+      <input type="number" id="new-prize-stock" placeholder="10" min="0">
+    </div>
+    <div class="form-group">
+      <label>抽獎權重（數字越大越容易抽到）</label>
+      <input type="number" id="new-prize-weight" placeholder="10" min="1">
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="new-prize-physical" checked>
+        實體商品（需填寄送資料）
+      </label>
+    </div>
+    <button class="btn-primary" onclick="addPrize()" style="margin-bottom:12px">新增</button>
+    <button class="btn-close" onclick="closeAddPrize()">取消</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="result-modal">
+  <div class="result-modal">
+    <div class="result-emoji" id="result-emoji">🎁</div>
+    <div class="result-label">恭喜您抽到</div>
+    <div class="result-name" id="result-name">—</div>
+    <div class="result-desc" id="result-desc">—</div>
+    <div class="result-note" id="result-note" style="display:none">📱 請截圖後至官方 LINE 回報，我們將為您安排寄送</div>
+    <button class="btn-close" onclick="closeResult()">確　認</button>
+  </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal-overlay" id="purchase-modal">
+  <div class="result-modal">
+    <div class="result-emoji">🎟</div>
+    <div class="result-label">購買抽獎券</div>
+    <div class="result-name">NT$ 100 / 張</div>
+    <div class="result-desc" style="margin-bottom:16px">每日限購一張<br>付款成功後自動加入票券</div>
+    <button class="btn-primary" onclick="simulatePurchase()" style="margin-bottom:12px">前往付款（綠界）</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <input type="text" id="promo-input" placeholder="輸入優惠碼" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;text-transform:uppercase">
+      <button onclick="redeemPromo()" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:10px 14px;font-family:'Noto Serif TC',serif;font-size:12px;letter-spacing:1px;cursor:pointer;white-space:nowrap">兌換</button>
+    </div>
+    <button class="btn-close" onclick="closePurchase()">取　消</button>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="result-modal">
+    <div class="result-label" style="margin-bottom:20px">編輯收件資料</div>
+    <div class="form-group">
+      <label>超商別</label>
+      <select id="edit-store" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px 16px;color:var(--text);font-size:14px;outline:none">
+        <option value="">請選擇</option>
+        <option value="7-11">7-ELEVEN</option>
+        <option value="全家">全家 FamilyMart</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>門市名稱</label>
+      <input type="text" id="edit-storename" placeholder="例：台北市政門市">
+    </div>
+    <button class="btn-primary" onclick="saveProfile()" style="margin-bottom:12px">儲　存</button>
+    <button class="btn-close" onclick="closeEdit()">取　消</button>
+  </div>
+</div>
+
+<!-- 條款 Modal -->
+<div class="modal-overlay" id="terms-modal">
+  <div class="result-modal" style="max-height:85vh;overflow-y:auto;text-align:left">
+    <div style="font-size:14px;font-weight:900;color:var(--gold);letter-spacing:3px;margin-bottom:20px;text-align:center">服務條款</div>
+    <div style="font-size:12px;color:var(--text-dim);line-height:2;letter-spacing:0.5px">
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第一條：服務說明</p>
+      <p style="margin-bottom:14px">本平台「命運膠囊」提供線上抽獎服務，用戶購買抽獎券後參與抽獎，獎品依系統隨機結果發放。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第二條：抽獎券購買</p>
+      <p style="margin-bottom:4px">1. 每張抽獎券售價 NT$100</p>
+      <p style="margin-bottom:4px">2. 每位用戶每日限購一張，於台灣時間每日 00:00 重置</p>
+      <p style="margin-bottom:14px">3. 抽獎券一經購買，不得退款或轉讓</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第三條：抽獎規則</p>
+      <p style="margin-bottom:4px">1. 抽獎結果由系統依設定機率隨機產生，結果即時確認</p>
+      <p style="margin-bottom:4px">2. 每次抽獎消耗一張券，抽獎結果不可重抽或更改</p>
+      <p style="margin-bottom:14px">3. 抽中「免費再抽」者，系統自動補發一張券</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第四條：獎品領取</p>
+      <p style="margin-bottom:4px">1. 實體獎品抽中後累積於帳號，用戶可自行決定申請出貨時機</p>
+      <p style="margin-bottom:4px">2. 申請出貨前請確認姓名、超商別及門市名稱填寫正確</p>
+      <p style="margin-bottom:4px">3. 申請送出後地址資料不得變更，請務必確認後再申請</p>
+      <p style="margin-bottom:4px">4. 賣方收到申請後將於 3-5 個工作天內安排寄送</p>
+      <p style="margin-bottom:14px">5. 超商取貨到店後請於期限內領取，逾期未取視同放棄</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第五條：免責聲明</p>
+      <p style="margin-bottom:4px">1. 本平台保留修改獎品內容、機率設定及活動規則之權利，並提前公告</p>
+      <p style="margin-bottom:4px">2. 因用戶填寫資料錯誤導致無法收件，本平台不負補寄責任</p>
+      <p style="margin-bottom:14px">3. 不可抗力因素（天災、物流異常等）造成延誤，本平台不負賠償責任</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">第六條：爭議處理</p>
+      <p>如對交易有任何疑問或爭議，請透過官方 LINE 聯繫，本平台將於 3 個工作天內回覆處理。</p>
+    </div>
+    <button class="btn-primary" onclick="agreeTerms()" style="margin-top:20px;margin-bottom:10px">我已閱讀並同意</button>
+    <button class="btn-close" onclick="closeTermsModal()">關　閉</button>
+  </div>
+</div>
+
+<!-- 新增優惠碼 Modal -->
+<div class="modal-overlay" id="add-promo-modal">
+  <div class="result-modal">
+    <div class="result-label" style="margin-bottom:20px">新增優惠碼</div>
+    <div class="form-group">
+      <label>優惠碼（英文大寫）</label>
+      <input type="text" id="new-promo-code" placeholder="例：LUCKY2025" style="text-transform:uppercase">
+    </div>
+    <div class="form-group">
+      <label>兌換券張數</label>
+      <input type="number" id="new-promo-tickets" placeholder="3" min="1">
+    </div>
+    <div class="form-group">
+      <label>使用次數上限（留空 = 無限）</label>
+      <input type="number" id="new-promo-maxuses" placeholder="留空無限制" min="1">
+    </div>
+    <button class="btn-primary" onclick="addPromo()" style="margin-bottom:12px">新增</button>
+    <button class="btn-close" onclick="closeAddPromo()">取消</button>
+  </div>
+</div>
+
+<!-- 申請出貨確認 Modal -->
+<div class="modal-overlay" id="shipment-confirm-modal">
+  <div class="result-modal">
+    <div class="result-emoji">🚚</div>
+    <div class="result-label">確認申請出貨</div>
+    <div id="shipment-confirm-items" style="font-size:13px;color:var(--text-dim);margin:12px 0;line-height:2"></div>
+    <div id="shipment-confirm-address" style="font-size:12px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:16px;letter-spacing:1px;line-height:1.8"></div>
+    <div style="font-size:11px;color:var(--red);margin-bottom:16px;letter-spacing:1px">⚠️ 送出後地址不可更改，請確認正確</div>
+    <button class="btn-primary" onclick="confirmShipment()" style="margin-bottom:12px">確認送出</button>
+    <button class="btn-close" onclick="closeShipmentConfirm()">取消</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://nrcxauguqzupkvcggtzy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yY3hhdWd1cXp1cGt2Y2dndHp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NjQwMTksImV4cCI6MjA5MjQ0MDAxOX0.8c9vLwUyMwTQxrlceDrybHIvhWnC5ml5xOkk7XwclAQ';
+const ADMIN_PHONE = '0900640957';
+
+// ── Supabase helpers ──
+function headers(token) {
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+}
+
+async function dbSelect(table, filter = '') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?select=*${filter ? '&' + filter : ''}`;
+  const res = await fetch(url, { headers: headers(state.token) });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function dbInsert(table, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: headers(state.token),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function dbUpdate(table, filter, body) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${filter}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: headers(state.token),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function dbDelete(table, filter) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${filter}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: headers(state.token)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+// ── Supabase Auth ──
+async function authSignUp(phone, password, name) {
+  const email = `${phone}@gacha.local`;
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.msg || data.error_description || data.error || JSON.stringify(data));
+  if (data.error) throw new Error(data.error.message || data.error);
+
+  const user = data.user || data;
+  const token = data.access_token;
+
+  if (!user || !user.id) throw new Error('找不到用戶ID，回傳：' + JSON.stringify(Object.keys(data)));
+  if (!token) throw new Error('找不到token，回傳：' + JSON.stringify(Object.keys(data)));
+
+  const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({
+      id: user.id,
+      phone,
+      password_hash: password,
+      name,
+      tickets: 0,
+      is_admin: phone === ADMIN_PHONE
+    })
+  });
+
+  if (!insertRes.ok) {
+    const errText = await insertRes.text();
+    throw new Error('建立用戶資料失敗：' + errText);
+  }
+
+  return { token, userId: user.id };
+}
+
+async function authSignIn(phone, password) {
+  const email = `${phone}@gacha.local`;
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error_description || data.error);
+  return { token: data.access_token, userId: data.user.id };
+}
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const state = {
+  user: null,
+  token: null,
+  isAdmin: false,
+  prizes: [],
+  orders: []
+};
+
+// ══════════════════════════════════════
+// LOADING UI
+// ══════════════════════════════════════
+function showLoading(msg = '載入中…') {
+  let el = document.getElementById('loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(15,14,10,0.85);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px';
+    el.innerHTML = `<div style="width:32px;height:32px;border:2px solid #3a3020;border-top-color:#d4a843;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="color:#8a7f6a;font-size:13px;letter-spacing:2px">${msg}</div>`;
+    if (!document.querySelector('#spin-keyframe')) {
+      const s = document.createElement('style');
+      s.id = 'spin-keyframe';
+      s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(s);
+    }
+    document.body.appendChild(el);
+  } else {
+    el.querySelector('div:last-child').textContent = msg;
+    el.style.display = 'flex';
+  }
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.style.display = 'none';
+}
+
+function showError(msg) {
+  hideLoading();
+  alert('⚠️ ' + msg);
+}
+
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+function showRegister() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('register-form').style.display = 'block';
+}
+
+function showLogin() {
+  document.getElementById('register-form').style.display = 'none';
+  document.getElementById('login-form').style.display = 'block';
+}
+
+async function doLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!phone || !pass) return alert('請填寫所有欄位');
+  showLoading('登入中…');
+  try {
+    const { token, userId } = await authSignIn(phone, pass);
+    state.token = token;
+    // 取用戶資料
+    const rows = await dbSelect('users', `id=eq.${userId}`);
+    if (!rows.length) throw new Error('找不到用戶資料');
+    const u = rows[0];
+    state.user = u;
+    state.isAdmin = u.is_admin && u.phone === ADMIN_PHONE;
+    hideLoading();
+    if (state.isAdmin) {
+      showPage('page-admin');
+      await loadAdminData();
+    } else {
+      await enterApp();
+    }
+  } catch(e) {
+    showError('帳號或密碼錯誤：' + e.message);
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if (!name || !phone || !pass) return alert('請填寫所有欄位');
+  if (pass.length < 6) return alert('密碼至少6個字元');
+  showLoading('註冊中…');
+  try {
+    const { token, userId } = await authSignUp(phone, pass, name);
+    state.token = token;
+    const rows = await dbSelect('users', `id=eq.${userId}`);
+    state.user = rows[0];
+    state.isAdmin = false;
+    hideLoading();
+    await enterApp();
+  } catch(e) {
+    showError('註冊失敗：' + e.message);
+  }
+}
+
+async function enterApp() {
+  showPage('page-app');
+  await loadPrizes();
+  await loadMyOrders();
+  updateTicketCount();
+  renderPrizes();
+  renderProfile();
+  renderOrders();
+  switchSub('gacha');
+}
+
+function doLogout() {
+  state.user = null;
+  state.token = null;
+  state.isAdmin = false;
+  state.prizes = [];
+  state.orders = [];
+  showPage('page-login');
+}
+
+// ══════════════════════════════════════
+// DATA LOADERS
+// ══════════════════════════════════════
+async function loadPrizes() {
+  try {
+    const rows = await dbSelect('prizes', 'is_active=eq.true&order=weight.desc');
+    state.prizes = rows.map(p => ({
+      id: p.id,
+      name: p.name,
+      desc: p.description || '',
+      emoji: p.image_url || '🎁',
+      stock: p.stock,
+      isUnlimited: p.is_unlimited,
+      isFreeSpin: p.is_free_spin,
+      isPhysical: p.is_physical,
+      weight: p.weight
+    }));
+  } catch(e) {
+    console.error('loadPrizes error', e);
+  }
+}
+
+async function loadMyShipments() {
+  try {
+    state.shipments = await dbSelect('shipment_requests', `user_id=eq.${state.user.id}&order=created_at.desc`);
+    renderShipmentHistory();
+  } catch(e) {}
+}
+
+async function loadMyOrders() {
+  try {
+    const rows = await dbSelect('spins', `user_id=eq.${state.user.id}&order=created_at.desc`);
+    state.orders = rows;
+  } catch(e) {
+    console.error('loadMyOrders error', e);
+  }
+}
+
+async function refreshTickets() {
+  try {
+    const rows = await dbSelect('users', `id=eq.${state.user.id}`);
+    if (rows.length) {
+      state.user.tickets = rows[0].tickets;
+      updateTicketCount();
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchSub(tab) {
+  ['gacha','prizes','profile'].forEach(t => {
+    document.getElementById('sub-'+t).style.display = t === tab ? 'flex' : 'none';
+    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'prizes') renderPrizes();
+  if (tab === 'profile') { renderProfile(); renderOrders(); loadMyShipments(); }
+}
+
+// ══════════════════════════════════════
+// GACHA LOGIC
+// ══════════════════════════════════════
+function getAvailablePrizes() {
+  return state.prizes.filter(p => p.isUnlimited || p.stock > 0);
+}
+
+function weightedRandom(prizes) {
+  const total = prizes.reduce((s, p) => s + p.weight, 0);
+  let r = Math.random() * total;
+  for (const p of prizes) {
+    r -= p.weight;
+    if (r <= 0) return p;
+  }
+  return prizes[prizes.length - 1];
+}
+
+async function doSpin() {
+  if (!state.user || state.user.tickets <= 0) {
+    document.getElementById('no-ticket-msg').style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+
+  // Animate machine
+  const machine = document.getElementById('machine');
+  machine.classList.add('spinning');
+  const rb = document.getElementById('result-ball-out');
+  if(rb) rb.classList.remove('show');
+  setTimeout(() => machine.classList.remove('spinning'), 700);
+
+  try {
+    // 1. 扣券
+    await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: state.user.tickets - 1 });
+    state.user.tickets--;
+    updateTicketCount();
+
+    // 2. 抽獎
+    await loadPrizes();
+    const available = getAvailablePrizes();
+    if (!available.length) throw new Error('目前沒有可抽的獎品');
+    const prize = weightedRandom(available);
+
+    // 3. 扣庫存（非無限）
+    if (!prize.isUnlimited) {
+      const dbPrize = state.prizes.find(p => p.id === prize.id);
+      await dbUpdate('prizes', `id=eq.${prize.id}`, { stock: dbPrize.stock - 1 });
+    }
+
+    // 4. 免費再抽
+    if (prize.isFreeSpin) {
+      await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: state.user.tickets + 1 });
+      state.user.tickets++;
+      updateTicketCount();
+    }
+
+    // 5. 寫抽獎紀錄
+    await dbInsert('spins', {
+      user_id: state.user.id,
+      prize_id: prize.id,
+      prize_name: prize.name,
+      is_physical: prize.isPhysical,
+      status: prize.isPhysical ? 'collected' : 'done'
+    });
+
+    // 6. 重新載入訂單
+    await loadMyOrders();
+    renderOrders();
+
+    setTimeout(() => {
+      showResult(prize);
+      btn.disabled = false;
+      if (state.user.tickets === 0) {
+        document.getElementById('no-ticket-msg').style.display = 'block';
+      }
+    }, 700);
+
+  } catch(e) {
+    showError('抽獎失敗：' + e.message);
+    btn.disabled = false;
+    await refreshTickets();
+  }
+}
+
+function showResult(prize) {
+  document.getElementById('result-emoji').textContent = prize.emoji;
+  document.getElementById('result-name').textContent = prize.name;
+  document.getElementById('result-desc').textContent = prize.desc;
+  const note = document.getElementById('result-note');
+  note.style.display = prize.isPhysical ? 'block' : 'none';
+  if (prize.isFreeSpin) spawnConfetti();
+  // 出口球動畫
+  const rb = document.getElementById('result-ball-out');
+  if (rb) {
+    const colors = ['#f5c842','#f07070','#70a8f0','#70e8a0','#e090f0','#f0a060'];
+    rb.style.background = `radial-gradient(circle at 35% 35%, ${colors[Math.floor(Math.random()*colors.length)]}, #1a1508)`;
+    rb.classList.add('show');
+  }
+  setTimeout(() => document.getElementById('result-modal').classList.add('show'), 300);
+}
+
+function closeResult() {
+  document.getElementById('result-modal').classList.remove('show');
+}
+
+function spawnConfetti() {
+  const colors = ['#d4a843','#c94040','#4a9e6b','#70a0e8','#e087d0'];
+  for (let i = 0; i < 30; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-10px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDelay = Math.random() * 0.5 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+}
+
+// ══════════════════════════════════════
+// PRIZES RENDER
+// ══════════════════════════════════════
+function renderPrizes() {
+  const grid = document.getElementById('prizes-grid');
+  const physical = state.prizes.filter(p => !p.isUnlimited);
+  const unlimited = state.prizes.filter(p => p.isUnlimited);
+  grid.innerHTML = physical.map(p => `
+    <div class="prize-card">
+      <div class="prize-emoji">${p.emoji}</div>
+      <div class="prize-name">${p.name}</div>
+      <div class="prize-stock ${p.stock === 0 ? 'zero' : ''}">
+        剩餘 <strong>${p.stock}</strong> 件
+      </div>
+    </div>
+  `).join('') + unlimited.map(p => `
+    <div class="prize-card">
+      <div class="prize-emoji">${p.emoji}</div>
+      <div class="prize-name">${p.name}</div>
+      <div class="prize-stock unlimited">無限</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════
+function renderProfile() {
+  if (!state.user) return;
+  document.getElementById('profile-name').textContent = state.user.name;
+  document.getElementById('profile-phone').textContent = state.user.phone;
+  document.getElementById('profile-store').textContent = state.user.convenience_store || '未設定';
+  document.getElementById('profile-storename').textContent = state.user.store_name || '未設定';
+}
+
+function renderOrders() {
+  renderCollected();
+  renderShipmentHistory();
+}
+
+async function showEditProfile() {
+  document.getElementById('edit-store').value = state.user.convenience_store || '';
+  document.getElementById('edit-storename').value = state.user.store_name || '';
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+async function saveProfile() {
+  const store = document.getElementById('edit-store').value;
+  const storeName = document.getElementById('edit-storename').value;
+  showLoading('儲存中…');
+  try {
+    await dbUpdate('users', `id=eq.${state.user.id}`, {
+      convenience_store: store,
+      store_name: storeName
+    });
+    state.user.convenience_store = store;
+    state.user.store_name = storeName;
+    renderProfile();
+    hideLoading();
+    closeEdit();
+  } catch(e) {
+    showError('儲存失敗：' + e.message);
+  }
+}
+
+function closeEdit() {
+  document.getElementById('edit-modal').classList.remove('show');
+}
+
+// ══════════════════════════════════════
+// PURCHASE
+// ══════════════════════════════════════
+function showPurchase() {
+  document.getElementById('purchase-modal').classList.add('show');
+}
+
+function closePurchase() {
+  document.getElementById('purchase-modal').classList.remove('show');
+}
+
+async function checkDailyLimit() {
+  // 取今天台灣時間的日期字串 YYYY-MM-DD
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' });
+  try {
+    const rows = await dbSelect('daily_purchases', `user_id=eq.${state.user.id}&purchase_date=eq.${today}`);
+    return rows.length > 0; // true = 今天已購過
+  } catch(e) {
+    return false;
+  }
+}
+
+async function recordDailyPurchase() {
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' });
+  await dbInsert('daily_purchases', {
+    user_id: state.user.id,
+    purchase_date: today
+  });
+}
+
+async function simulatePurchase() {
+  // TODO: 串綠界後這裡改成轉跳付款頁
+  showLoading('確認資格中…');
+  try {
+    // 每日限購檢查
+    const alreadyBought = await checkDailyLimit();
+    if (alreadyBought) {
+      hideLoading();
+      closePurchase();
+      alert('⚠️ 今日已購買過，明天再來！
+（每日台灣時間 00:00 重置）');
+      return;
+    }
+
+    showLoading('處理付款…');
+    const newTickets = (state.user.tickets || 0) + 1;
+    await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: newTickets });
+    await recordDailyPurchase();
+    state.user.tickets = newTickets;
+    updateTicketCount();
+    document.getElementById('no-ticket-msg').style.display = 'none';
+    hideLoading();
+    closePurchase();
+    alert('✅ 付款成功！票券已加入');
+  } catch(e) {
+    showError('付款失敗：' + e.message);
+  }
+}
+
+function updateTicketCount() {
+  document.getElementById('ticket-count').textContent = state.user?.tickets || 0;
+}
+
+// ══════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════
+let currentOrderFilter = 'pending';
+const sysSettings = { price: 100, dailyLimit: 1, notice: '', lineId: '', paused: false };
+
+async function loadAdminData() {
+  showLoading('載入後台資料…');
+  try {
+    await loadPrizes();
+    updateAdminStats();
+    renderAdminOrders();
+    hideLoading();
+  } catch(e) {
+    showError('後台載入失敗：' + e.message);
+  }
+}
+
+function switchAdminTab(tab) {
+  ['orders','prizes','users','wishes','promos','settings'].forEach(t => {
+    const el = document.getElementById('admin-'+t);
+    if(el) el.style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById('atab-'+t);
+    if(btn) btn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'orders') renderAdminOrders();
+  if (tab === 'prizes') renderAdminPrizes();
+  if (tab === 'users') loadAndRenderAdminUsers();
+  if (tab === 'wishes') loadAdminWishes();
+  if (tab === 'promos') loadAdminPromos();
+  if (tab === 'settings') loadSettings();
+}
+
+async function updateAdminStats() {
+  try {
+    const allSpins = await dbSelect('spins', '');
+    const pending = allSpins.filter(o => o.status === 'pending' && o.is_physical).length;
+    const shipped = allSpins.filter(o => o.status === 'shipped').length;
+    const allUsers = await dbSelect('users', '');
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-shipped').textContent = shipped;
+    document.getElementById('stat-users').textContent = allUsers.length;
+    document.getElementById('stat-spins').textContent = allSpins.length;
+  } catch(e) {}
+}
+
+// ── 出貨管理 ──
+function filterOrders(filter) {
+  currentOrderFilter = filter;
+  ['pending','shipped','all'].forEach(f => {
+    document.getElementById('filter-'+f).classList.toggle('active', f === filter);
+  });
+  renderAdminOrders();
+}
+
+async function renderAdminOrders() {
+  const list = document.getElementById('admin-orders-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">載入中…</div>';
+  try {
+    let filter = 'is_physical=eq.true&order=created_at.desc';
+    if (currentOrderFilter === 'pending') filter += '&status=eq.pending';
+    if (currentOrderFilter === 'shipped') filter += '&status=eq.shipped';
+
+    // 出貨申請區塊
+    const shipReqs = await dbSelect('shipment_requests', 'order=created_at.desc');
+    let shipHtml = '';
+    if (shipReqs.length) {
+      shipHtml = `<div class="section-title" style="margin-bottom:12px">出貨申請</div>` +
+        shipReqs.map(s => `
+        <div class="admin-order-card" style="margin-bottom:10px">
+          <div class="admin-order-top">
+            <div style="flex:1">
+              <div class="admin-order-name">${s.user_name}</div>
+              <div class="admin-order-meta">
+                🏪 ${s.convenience_store || '未填'} ／ ${s.store_name || '未填'}<br>
+                📦 ${Object.entries(s.items||{}).map(([n,q])=>n+' ×'+q).join('、')}<br>
+                🕐 ${new Date(s.created_at).toLocaleString('zh-TW')}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+              <div class="status-badge ${s.status==='pending'?'status-pending':'status-shipped'}">
+                ${s.status==='pending'?'待出貨':'已寄出'}
+              </div>
+              ${s.status==='pending'?`<button class="btn-ship" onclick="markShipmentDone('${s.id}')">確認出貨</button>`:''}
+            </div>
+          </div>
+        </div>`).join('');
+      shipHtml += `<div class="section-title" style="margin:16px 0 12px">抽獎紀錄</div>`;
+    }
+
+    const spins = await dbSelect('spins', filter);
+    if (!spins.length && !shipReqs.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">無訂單紀錄</div>';
+      return;
+    }
+    if (!spins.length) {
+      list.innerHTML = shipHtml + '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">無抽獎紀錄</div>';
+      updateAdminStats();
+      return;
+    }
+
+    // 批次取用戶資料
+    const userIds = [...new Set(spins.map(s => s.user_id))];
+    const usersData = await dbSelect('users', `id=in.(${userIds.join(',')})`);
+    const userMap = {};
+    usersData.forEach(u => userMap[u.id] = u);
+
+    list.innerHTML = shipHtml + spins.map(o => {
+      const u = userMap[o.user_id] || {};
+      return `
+      <div class="admin-order-card">
+        <div class="admin-order-top">
+          <div style="flex:1">
+            <div class="admin-order-name">${o.prize_name}</div>
+            <div class="admin-order-meta">
+              👤 ${u.name || '?'}（${u.phone || '?'}）<br>
+              🏪 ${u.convenience_store || '未填'} ／ ${u.store_name || '未填門市'}<br>
+              🕐 ${new Date(o.created_at).toLocaleString('zh-TW')}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <div class="status-badge ${o.status === 'pending' ? 'status-pending' : 'status-shipped'}">
+              ${o.status === 'pending' ? '待出貨' : '已出貨'}
+            </div>
+            ${o.status === 'pending' ? `<button class="btn-ship" onclick="markShipped('${o.id}')">確認出貨</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    updateAdminStats();
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗：${e.message}</div>`;
+  }
+}
+
+async function markShipmentDone(reqId) {
+  showLoading('更新中…');
+  try {
+    await dbUpdate('shipment_requests', `id=eq.${reqId}`, { status: 'shipped' });
+    // 把相關 spins 改為 shipped
+    await dbUpdate('spins', `status=eq.requested`, { status: 'shipped' });
+    hideLoading();
+    renderAdminOrders();
+  } catch(e) {
+    showError('更新失敗：' + e.message);
+  }
+}
+
+async function markShipped(spinId) {
+  showLoading('更新中…');
+  try {
+    await dbUpdate('spins', `id=eq.${spinId}`, { status: 'shipped' });
+    hideLoading();
+    renderAdminOrders();
+  } catch(e) {
+    showError('更新失敗：' + e.message);
+  }
+}
+
+// ── 獎品設定 ──
+function calcPrizePercent(prize) {
+  const total = state.prizes.reduce((s, p) => s + (p.weight || 0), 0);
+  if (!total) return '0%';
+  return ((prize.weight / total) * 100).toFixed(1) + '%';
+}
+
+function renderAdminPrizes() {
+  const list = document.getElementById('admin-prizes-list');
+  list.innerHTML = state.prizes.map(p => `
+    <div class="prize-admin-card">
+      <div class="prize-admin-emoji">${p.emoji}</div>
+      <div class="prize-admin-info">
+        <div class="prize-admin-name">${p.name}</div>
+        <div class="prize-admin-stock">
+          ${p.isUnlimited ? '無限庫存' : `庫存 ${p.stock} 件`}
+          ／ 機率 <strong style="color:var(--gold)">${calcPrizePercent(p)}</strong>
+          ${p.isPhysical ? '／ 🚚 實體' : '／ 💻 虛擬'}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        ${!p.isUnlimited ? `
+        <div class="stock-controls">
+          <button class="stock-btn" onclick="adjustStock('${p.id}', -1)">－</button>
+          <span class="stock-num" id="stock-${p.id}">${p.stock}</span>
+          <button class="stock-btn" onclick="adjustStock('${p.id}', 1)">＋</button>
+        </div>` : '<span style="font-size:11px;color:var(--text-dim)">無限</span>'}
+        <button onclick="deletePrize('${p.id}')" style="background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;letter-spacing:1px">刪除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function adjustStock(prizeId, delta) {
+  const p = state.prizes.find(x => x.id === prizeId);
+  if (!p) return;
+  const newStock = Math.max(0, p.stock + delta);
+  try {
+    await dbUpdate('prizes', `id=eq.${prizeId}`, { stock: newStock });
+    p.stock = newStock;
+    const el = document.getElementById('stock-' + prizeId);
+    if (el) el.textContent = newStock;
+  } catch(e) {
+    showError('更新庫存失敗：' + e.message);
+  }
+}
+
+async function deletePrize(prizeId) {
+  if (!confirm('確定要刪除這個獎品嗎？')) return;
+  showLoading('刪除中…');
+  try {
+    await dbUpdate('prizes', `id=eq.${prizeId}`, { is_active: false });
+    await loadPrizes();
+    renderAdminPrizes();
+    hideLoading();
+  } catch(e) {
+    showError('刪除失敗：' + e.message);
+  }
+}
+
+function showAddPrize() {
+  document.getElementById('new-prize-name').value = '';
+  document.getElementById('new-prize-desc').value = '';
+  document.getElementById('new-prize-emoji').value = '🎁';
+  document.getElementById('new-prize-stock').value = '10';
+  document.getElementById('new-prize-weight').value = '10';
+  document.getElementById('new-prize-physical').checked = true;
+  document.getElementById('add-prize-modal').classList.add('show');
+}
+
+function closeAddPrize() {
+  document.getElementById('add-prize-modal').classList.remove('show');
+}
+
+async function addPrize() {
+  const name = document.getElementById('new-prize-name').value.trim();
+  const desc = document.getElementById('new-prize-desc').value.trim();
+  const emoji = document.getElementById('new-prize-emoji').value.trim() || '🎁';
+  const stock = parseInt(document.getElementById('new-prize-stock').value) || 0;
+  const weight = parseInt(document.getElementById('new-prize-weight').value) || 10;
+  const isPhysical = document.getElementById('new-prize-physical').checked;
+  if (!name) return alert('請填寫獎品名稱');
+  showLoading('新增獎品…');
+  try {
+    await dbInsert('prizes', {
+      name,
+      description: desc,
+      image_url: emoji,
+      stock,
+      is_unlimited: false,
+      is_free_spin: false,
+      is_physical: isPhysical,
+      weight,
+      is_active: true
+    });
+    await loadPrizes();
+    closeAddPrize();
+    renderAdminPrizes();
+    hideLoading();
+  } catch(e) {
+    showError('新增失敗：' + e.message);
+  }
+}
+
+// ── 用戶列表 ──
+async function loadAndRenderAdminUsers() {
+  const list = document.getElementById('admin-users-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">載入中…</div>';
+  try {
+    const users = await dbSelect('users', 'order=created_at.desc');
+    if (!users.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">尚無用戶</div>';
+      return;
+    }
+    list.innerHTML = users.map(u => `
+      <div class="user-card">
+        <div>
+          <div class="user-name">${u.name}</div>
+          <div class="user-meta">
+            📱 ${u.phone}<br>
+            🏪 ${u.convenience_store || '未填'} ${u.store_name || ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div class="user-tickets">🎟 ${u.tickets}</div>
+          <button onclick="addTicketToUser('${u.id}', ${u.tickets})" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:4px 10px;font-size:11px;cursor:pointer;letter-spacing:1px">補發券</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗：${e.message}</div>`;
+  }
+}
+
+async function addTicketToUser(userId, currentTickets) {
+  showLoading('補發中…');
+  try {
+    await dbUpdate('users', `id=eq.${userId}`, { tickets: currentTickets + 1 });
+    hideLoading();
+    loadAndRenderAdminUsers();
+    updateAdminStats();
+  } catch(e) {
+    showError('補發失敗：' + e.message);
+  }
+}
+
+// ── 系統設定 ──
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '↻ 更新中…';
+  btn.style.opacity = '0.6';
+  try {
+    await loadPrizes();
+    await updateAdminStats();
+    // 重新渲染當前 tab
+    const activeTab = document.querySelector('.admin-tab.active');
+    if (activeTab) {
+      const tab = activeTab.id.replace('atab-', '');
+      if (tab === 'orders') await renderAdminOrders();
+      if (tab === 'prizes') renderAdminPrizes();
+      if (tab === 'users') await loadAndRenderAdminUsers();
+    }
+    btn.textContent = '✓ 已更新';
+    setTimeout(() => { btn.textContent = '↻ 更新'; btn.style.opacity = '1'; }, 1500);
+  } catch(e) {
+    btn.textContent = '↻ 更新';
+    btn.style.opacity = '1';
+  }
+}
+
+// ══════════════════════════════════════
+// 條款
+// ══════════════════════════════════════
+function showTermsModal() {
+  document.getElementById('terms-modal').classList.add('show');
+}
+function closeTermsModal() {
+  document.getElementById('terms-modal').classList.remove('show');
+}
+function agreeTerms() {
+  document.getElementById('terms-check').checked = true;
+  closeTermsModal();
+}
+function checkTermsThenSpin() {
+  const checked = document.getElementById('terms-check').checked;
+  if (!checked) {
+    alert('請先閱讀並同意服務條款');
+    return;
+  }
+  doSpin();
+}
+
+// ══════════════════════════════════════
+// 優惠碼
+// ══════════════════════════════════════
+async function redeemPromo() {
+  const code = document.getElementById('promo-input').value.trim().toUpperCase();
+  if (!code) return alert('請輸入優惠碼');
+  showLoading('驗證優惠碼…');
+  try {
+    // 查優惠碼
+    const promos = await dbSelect('promo_codes', `code=eq.${code}&is_active=eq.true`);
+    if (!promos.length) throw new Error('優惠碼不存在或已停用');
+    const promo = promos[0];
+
+    // 檢查使用次數上限
+    if (promo.max_uses !== null && promo.used_count >= promo.max_uses) throw new Error('此優惠碼已達使用上限');
+
+    // 檢查是否已使用過
+    const uses = await dbSelect('promo_uses', `user_id=eq.${state.user.id}&promo_id=eq.${promo.id}`);
+    if (uses.length) throw new Error('您已使用過此優惠碼');
+
+    // 發券
+    const newTickets = (state.user.tickets || 0) + promo.tickets;
+    await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: newTickets });
+    await dbInsert('promo_uses', { user_id: state.user.id, promo_id: promo.id });
+    await dbUpdate('promo_codes', `id=eq.${promo.id}`, { used_count: promo.used_count + 1 });
+
+    state.user.tickets = newTickets;
+    updateTicketCount();
+    document.getElementById('promo-input').value = '';
+    document.getElementById('no-ticket-msg').style.display = 'none';
+    hideLoading();
+    closePurchase();
+    alert(`✅ 優惠碼兌換成功！獲得 ${promo.tickets} 張抽獎券`);
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+// ══════════════════════════════════════
+// 許願池
+// ══════════════════════════════════════
+async function submitWish() {
+  const content = document.getElementById('wish-input').value.trim();
+  if (!content) return alert('請輸入許願內容');
+  showLoading('送出許願…');
+  try {
+    await dbInsert('wishlists', {
+      user_id: state.user.id,
+      user_name: state.user.name,
+      content
+    });
+    document.getElementById('wish-input').value = '';
+    hideLoading();
+    alert('🌟 許願成功！我們會認真考慮的');
+  } catch(e) {
+    showError('送出失敗：' + e.message);
+  }
+}
+
+// ══════════════════════════════════════
+// 累積獎品 & 申請出貨
+// ══════════════════════════════════════
+function renderCollected() {
+  const list = document.getElementById('collected-list');
+  const btn = document.getElementById('apply-ship-btn');
+  const collected = (state.orders || []).filter(o => o.is_physical && o.status === 'collected');
+
+  if (!collected.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無累積獎品</div>';
+    if(btn) btn.style.display = 'none';
+    return;
+  }
+
+  // 統計品項
+  const itemMap = {};
+  collected.forEach(o => {
+    itemMap[o.prize_name] = (itemMap[o.prize_name] || 0) + 1;
+  });
+
+  list.innerHTML = Object.entries(itemMap).map(([name, qty]) => `
+    <div class="order-card">
+      <div>
+        <div class="order-prize">${name}</div>
+        <div class="order-date">數量：${qty} 件</div>
+      </div>
+      <div class="status-badge status-pending">待領取</div>
+    </div>
+  `).join('');
+
+  if(btn) btn.style.display = 'block';
+}
+
+function renderShipmentHistory() {
+  const list = document.getElementById('shipment-list');
+  // 從 state 取出（需要另外載入）
+  if (!state.shipments || !state.shipments.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">尚無申請紀錄</div>';
+    return;
+  }
+  list.innerHTML = state.shipments.map(s => `
+    <div class="order-card">
+      <div>
+        <div class="order-prize">出貨申請</div>
+        <div class="order-date">${new Date(s.created_at).toLocaleDateString('zh-TW')}</div>
+      </div>
+      <div class="status-badge ${s.status === 'pending' ? 'status-pending' : 'status-shipped'}">
+        ${s.status === 'pending' ? '處理中' : '已寄出'}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function applyShipment() {
+  if (!state.user.convenience_store || !state.user.store_name) {
+    alert('請先至個人資料填寫超商與門市名稱');
+    showEditProfile();
+    return;
+  }
+  const collected = (state.orders || []).filter(o => o.is_physical && o.status === 'collected');
+  if (!collected.length) return alert('目前沒有累積獎品可申請');
+
+  // 統計品項
+  const itemMap = {};
+  collected.forEach(o => { itemMap[o.prize_name] = (itemMap[o.prize_name] || 0) + 1; });
+  const itemText = Object.entries(itemMap).map(([n,q]) => `・${n} × ${q}`).join('<br>');
+
+  document.getElementById('shipment-confirm-items').innerHTML = itemText;
+  document.getElementById('shipment-confirm-address').innerHTML =
+    `超商：${state.user.convenience_store}<br>門市：${state.user.store_name}<br>收件人：${state.user.name}`;
+  document.getElementById('shipment-confirm-modal').classList.add('show');
+}
+
+function closeShipmentConfirm() {
+  document.getElementById('shipment-confirm-modal').classList.remove('show');
+}
+
+async function confirmShipment() {
+  showLoading('送出申請…');
+  try {
+    const collected = (state.orders || []).filter(o => o.is_physical && o.status === 'collected');
+    const itemMap = {};
+    collected.forEach(o => { itemMap[o.prize_name] = (itemMap[o.prize_name] || 0) + 1; });
+
+    // 建立出貨申請
+    await dbInsert('shipment_requests', {
+      user_id: state.user.id,
+      user_name: state.user.name,
+      convenience_store: state.user.convenience_store,
+      store_name: state.user.store_name,
+      items: itemMap,
+      status: 'pending'
+    });
+
+    // 把所有 collected 狀態改為 requested
+    for (const o of collected) {
+      await dbUpdate('spins', `id=eq.${o.id}`, { status: 'requested' });
+    }
+
+    await loadMyOrders();
+    if (!state.shipments) state.shipments = [];
+    state.shipments = await dbSelect('shipment_requests', `user_id=eq.${state.user.id}&order=created_at.desc`);
+
+    closeShipmentConfirm();
+    hideLoading();
+    renderCollected();
+    renderShipmentHistory();
+    alert('✅ 申請送出！賣家確認後將於 3-5 個工作天安排寄送');
+  } catch(e) {
+    showError('申請失敗：' + e.message);
+  }
+}
+
+// ══════════════════════════════════════
+// 後台：許願池
+// ══════════════════════════════════════
+async function loadAdminWishes() {
+  const list = document.getElementById('admin-wishes-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">載入中…</div>';
+  try {
+    const wishes = await dbSelect('wishlists', 'order=created_at.desc');
+    if (!wishes.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">尚無許願紀錄</div>';
+      return;
+    }
+    list.innerHTML = wishes.map(w => `
+      <div class="admin-order-card">
+        <div class="admin-order-top">
+          <div style="flex:1">
+            <div class="admin-order-name" style="font-size:14px">${w.content}</div>
+            <div class="admin-order-meta">👤 ${w.user_name} ／ ${new Date(w.created_at).toLocaleDateString('zh-TW')}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗</div>`;
+  }
+}
+
+// ══════════════════════════════════════
+// 後台：優惠碼管理
+// ══════════════════════════════════════
+async function loadAdminPromos() {
+  const list = document.getElementById('admin-promos-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px 0">載入中…</div>';
+  try {
+    const promos = await dbSelect('promo_codes', 'order=created_at.desc');
+    if (!promos.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:32px 0">尚無優惠碼</div>';
+      return;
+    }
+    list.innerHTML = promos.map(p => `
+      <div class="admin-order-card">
+        <div class="admin-order-top">
+          <div style="flex:1">
+            <div class="admin-order-name" style="font-family:'Space Mono',monospace;font-size:16px;letter-spacing:2px">${p.code}</div>
+            <div class="admin-order-meta">
+              🎟 兌換 ${p.tickets} 張券 ／
+              使用 ${p.used_count}${p.max_uses ? ' / ' + p.max_uses : ' / 無限'} 次
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <div class="status-badge ${p.is_active ? 'status-shipped' : 'status-pending'}">${p.is_active ? '啟用' : '停用'}</div>
+            <button onclick="togglePromo('${p.id}', ${p.is_active})" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer;letter-spacing:1px">
+              ${p.is_active ? '停用' : '啟用'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗</div>`;
+  }
+}
+
+function showAddPromo() {
+  document.getElementById('new-promo-code').value = '';
+  document.getElementById('new-promo-tickets').value = '';
+  document.getElementById('new-promo-maxuses').value = '';
+  document.getElementById('add-promo-modal').classList.add('show');
+}
+function closeAddPromo() {
+  document.getElementById('add-promo-modal').classList.remove('show');
+}
+
+async function addPromo() {
+  const code = document.getElementById('new-promo-code').value.trim().toUpperCase();
+  const tickets = parseInt(document.getElementById('new-promo-tickets').value) || 0;
+  const maxUses = document.getElementById('new-promo-maxuses').value.trim();
+  if (!code) return alert('請填寫優惠碼');
+  if (!tickets) return alert('請填寫券張數');
+  showLoading('新增中…');
+  try {
+    await dbInsert('promo_codes', {
+      code,
+      tickets,
+      max_uses: maxUses ? parseInt(maxUses) : null,
+      used_count: 0,
+      is_active: true
+    });
+    closeAddPromo();
+    loadAdminPromos();
+    hideLoading();
+  } catch(e) {
+    showError('新增失敗：' + e.message);
+  }
+}
+
+async function togglePromo(promoId, currentActive) {
+  showLoading('更新中…');
+  try {
+    await dbUpdate('promo_codes', `id=eq.${promoId}`, { is_active: !currentActive });
+    hideLoading();
+    loadAdminPromos();
+  } catch(e) {
+    showError('更新失敗：' + e.message);
+  }
+}
+
+// 後台出貨申請顯示（在 renderAdminOrders 裡加入出貨申請）
+async function renderAdminShipments() {
+  // 讀取所有待處理的出貨申請
+  try {
+    const requests = await dbSelect('shipment_requests', 'order=created_at.desc');
+    return requests;
+  } catch(e) {
+    return [];
+  }
+}
+
+function loadSettings() {
+  document.getElementById('setting-price').value = sysSettings.price;
+  document.getElementById('setting-daily-limit').value = sysSettings.dailyLimit;
+  document.getElementById('setting-notice').value = sysSettings.notice;
+  document.getElementById('setting-line').value = sysSettings.lineId;
+  document.getElementById('setting-pause').checked = sysSettings.paused;
+}
+
+function saveSettings() {
+  sysSettings.price = parseInt(document.getElementById('setting-price').value) || 100;
+  sysSettings.dailyLimit = parseInt(document.getElementById('setting-daily-limit').value) || 1;
+  sysSettings.notice = document.getElementById('setting-notice').value;
+  sysSettings.lineId = document.getElementById('setting-line').value;
+  alert('✅ 設定已儲存');
+}
+
+function togglePause() {
+  sysSettings.paused = document.getElementById('setting-pause').checked;
+  const btn = document.getElementById('spin-btn');
+  if (btn) {
+    btn.disabled = sysSettings.paused;
+    btn.textContent = sysSettings.paused ? '暫停中' : '抽　獎';
+  }
+}
+
+</script>
+</body>
+</html>
