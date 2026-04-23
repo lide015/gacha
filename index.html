@@ -2675,11 +2675,36 @@ async function loadAndRenderAdminUsers() {
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
           <div class="user-tickets">🎟 ${u.tickets}</div>
           <button onclick="addTicketToUser('${u.id}', ${u.tickets})" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:4px 10px;font-size:11px;cursor:pointer;letter-spacing:1px">補發券</button>
+          <button onclick="deleteUser('${u.id}', '${u.name}')" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:2px;padding:4px 10px;font-size:11px;cursor:pointer;letter-spacing:1px">刪除</button>
         </div>
       </div>
     `).join('');
   } catch(e) {
     list.innerHTML = `<div style="color:var(--red);font-size:13px;text-align:center;padding:20px 0">載入失敗：${e.message}</div>`;
+  }
+}
+
+async function deleteUser(userId, userName) {
+  if (!confirm(`確定要刪除用戶「${userName}」？
+此操作會同時刪除該用戶的所有抽獎紀錄，無法復原。`)) return;
+  showLoading('刪除中…');
+  try {
+    // 先刪除相關資料
+    await fetch(`${SUPABASE_URL}/rest/v1/spins?user_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    await fetch(`${SUPABASE_URL}/rest/v1/daily_purchases?user_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    await fetch(`${SUPABASE_URL}/rest/v1/promo_uses?user_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    await fetch(`${SUPABASE_URL}/rest/v1/referrals?invitee_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    await fetch(`${SUPABASE_URL}/rest/v1/referrals?inviter_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    await fetch(`${SUPABASE_URL}/rest/v1/shipment_requests?user_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    await fetch(`${SUPABASE_URL}/rest/v1/wishlists?user_id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    // 最後刪用戶
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, { method: 'DELETE', headers: headers(state.token) });
+    if (!res.ok) throw new Error(await res.text());
+    hideLoading();
+    loadAndRenderAdminUsers();
+    updateAdminStats();
+  } catch(e) {
+    showError('刪除失敗：' + e.message);
   }
 }
 
