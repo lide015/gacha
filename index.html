@@ -1455,6 +1455,18 @@
       <input type="number" id="new-prize-stock" placeholder="10" min="0">
     </div>
     <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="new-prize-unlimited" onchange="toggleUnlimitedStock()">
+        無限庫存（銘謝惠顧、免費再抽等）
+      </label>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="new-prize-freespin">
+        抽到此獎品時自動補發一張券（免費再抽）
+      </label>
+    </div>
+    <div class="form-group">
       <label>抽獎權重（數字越大越容易抽到）</label>
       <input type="number" id="new-prize-weight" placeholder="10" min="1">
     </div>
@@ -2469,6 +2481,14 @@ async function deletePrize(prizeId) {
 
 let prizeImageFile = null;
 
+function toggleUnlimitedStock() {
+  const unlimited = document.getElementById('new-prize-unlimited').checked;
+  const stockInput = document.getElementById('new-prize-stock');
+  stockInput.disabled = unlimited;
+  stockInput.style.opacity = unlimited ? '0.4' : '1';
+  if (unlimited) stockInput.value = '0';
+}
+
 function showAddPrize() {
   document.getElementById('new-prize-name').value = '';
   document.getElementById('new-prize-desc').value = '';
@@ -2480,6 +2500,10 @@ function showAddPrize() {
   document.getElementById('prize-drop-preview').style.display = 'none';
   document.getElementById('prize-drop-hint').style.display = 'block';
   document.getElementById('prize-img-input').value = '';
+  document.getElementById('new-prize-unlimited').checked = false;
+  document.getElementById('new-prize-freespin').checked = false;
+  document.getElementById('new-prize-stock').disabled = false;
+  document.getElementById('new-prize-stock').style.opacity = '1';
   document.getElementById('add-prize-modal').classList.add('show');
 }
 
@@ -2537,11 +2561,12 @@ async function addPrize() {
   const stock = parseInt(document.getElementById('new-prize-stock').value) || 0;
   const weight = parseInt(document.getElementById('new-prize-weight').value) || 10;
   const isPhysical = document.getElementById('new-prize-physical').checked;
+  const isUnlimited = document.getElementById('new-prize-unlimited').checked;
+  const isFreeSpin = document.getElementById('new-prize-freespin').checked;
   if (!name) return alert('請填寫獎品名稱');
   showLoading('新增獎品…');
   try {
     let imageUrl = emoji;
-    // 如果有選圖片，先上傳
     if (prizeImageFile) {
       showLoading('上傳圖片中…');
       imageUrl = await uploadPrizeImage(prizeImageFile, name);
@@ -2550,9 +2575,9 @@ async function addPrize() {
       name,
       description: desc,
       image_url: imageUrl,
-      stock,
-      is_unlimited: false,
-      is_free_spin: false,
+      stock: isUnlimited ? 0 : stock,
+      is_unlimited: isUnlimited,
+      is_free_spin: isFreeSpin,
       is_physical: isPhysical,
       weight,
       is_active: true
