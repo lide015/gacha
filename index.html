@@ -2070,7 +2070,25 @@ async function doSpin() {
 }
 
 function showResult(prize) {
-  document.getElementById('result-emoji').textContent = prize.emoji;
+  const emojiEl = document.getElementById('result-emoji');
+  // 判斷是 URL 還是 emoji
+  if (prize.emoji && prize.emoji.startsWith('http')) {
+    emojiEl.textContent = '';
+    // 顯示圖片
+    let img = document.getElementById('result-prize-img');
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'result-prize-img';
+      img.style.cssText = 'width:100px;height:100px;object-fit:cover;border-radius:8px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto';
+      emojiEl.parentNode.insertBefore(img, emojiEl);
+    }
+    img.src = prize.emoji;
+    img.style.display = 'block';
+  } else {
+    emojiEl.textContent = prize.emoji || '🎁';
+    const img = document.getElementById('result-prize-img');
+    if (img) img.style.display = 'none';
+  }
   document.getElementById('result-name').textContent = prize.name;
   document.getElementById('result-desc').textContent = prize.desc;
   const note = document.getElementById('result-note');
@@ -2811,8 +2829,8 @@ function shareResult() {
   // 取得獎品資料（從 state 拿正確名稱，不從DOM取）
   const prizeName = document.getElementById('result-name').textContent;
   // emoji：只取非URL的文字，若是URL就用預設
-  const rawEmoji = document.getElementById('result-emoji').textContent;
-  const prizeEmojiEl = (rawEmoji && !rawEmoji.startsWith('http') && rawEmoji.trim() !== '') ? rawEmoji : '🎁';
+  const rawEmoji = document.getElementById('result-emoji').textContent || '';
+  const prizeEmojiEl = (rawEmoji && !rawEmoji.startsWith('http') && rawEmoji.trim() !== '') ? rawEmoji.trim() : '🎁';
   // 取得當前抽到的獎品圖片
   const currentPrize = state.prizes.find(p => p.name === prizeName);
   const prizeImgUrl = currentPrize && currentPrize.emoji && currentPrize.emoji.startsWith('http') ? currentPrize.emoji : null;
@@ -2905,12 +2923,41 @@ function shareResult() {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
+        // 長方形圖片，帶圓角
+        const ix = 100, iy = 110, iw = 400, ih = 260, ir = 12;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(300, 220, 85, 0, Math.PI*2);
+        ctx.moveTo(ix+ir, iy);
+        ctx.lineTo(ix+iw-ir, iy);
+        ctx.arc(ix+iw-ir, iy+ir, ir, -Math.PI/2, 0);
+        ctx.lineTo(ix+iw, iy+ih-ir);
+        ctx.arc(ix+iw-ir, iy+ih-ir, ir, 0, Math.PI/2);
+        ctx.lineTo(ix+ir, iy+ih);
+        ctx.arc(ix+ir, iy+ih-ir, ir, Math.PI/2, Math.PI);
+        ctx.lineTo(ix, iy+ir);
+        ctx.arc(ix+ir, iy+ir, ir, Math.PI, -Math.PI/2);
+        ctx.closePath();
         ctx.clip();
-        ctx.drawImage(img, 215, 135, 170, 170);
+        // 等比例填滿
+        const scale = Math.max(iw/img.width, ih/img.height);
+        const sw = img.width*scale, sh = img.height*scale;
+        ctx.drawImage(img, ix+(iw-sw)/2, iy+(ih-sh)/2, sw, sh);
         ctx.restore();
+        // 圖片邊框
+        ctx.strokeStyle = 'rgba(0,180,255,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(ix+ir, iy);
+        ctx.lineTo(ix+iw-ir, iy);
+        ctx.arc(ix+iw-ir, iy+ir, ir, -Math.PI/2, 0);
+        ctx.lineTo(ix+iw, iy+ih-ir);
+        ctx.arc(ix+iw-ir, iy+ih-ir, ir, 0, Math.PI/2);
+        ctx.lineTo(ix+ir, iy+ih);
+        ctx.arc(ix+ir, iy+ih-ir, ir, Math.PI/2, Math.PI);
+        ctx.lineTo(ix, iy+ir);
+        ctx.arc(ix+ir, iy+ir, ir, Math.PI, -Math.PI/2);
+        ctx.closePath();
+        ctx.stroke();
         finishCard();
       };
       img.onerror = () => {
