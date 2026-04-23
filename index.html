@@ -1901,12 +1901,7 @@ async function loadAppSettings() {
       sysSettings.notice = rows[0].notice || '';
       sysSettings.paused = rows[0].paused || false;
       updateNoticeBanner();
-      // 暫停抽獎
-      const btn = document.getElementById('spin-btn');
-      if (btn && sysSettings.paused) {
-        btn.disabled = true;
-        btn.textContent = '暫停中';
-      }
+      syncPauseState();
     }
   } catch(e) {}
 }
@@ -2857,24 +2852,50 @@ function shareResult() {
   ctx.fillStyle = textGrad;
   ctx.fillText(prizeName, 300, 345);
 
-  // 邀請碼區塊
-  if (inviteCode) {
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  // 邀請碼區塊（roundRect fallback）
+  function roundRectFill(ctx, x, y, w, h, r) {
     ctx.beginPath();
-    ctx.roundRect(120, 390, 360, 80, 8);
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.arc(x+w-r, y+r, r, -Math.PI/2, 0);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.arc(x+w-r, y+h-r, r, 0, Math.PI/2);
+    ctx.lineTo(x+r, y+h);
+    ctx.arc(x+r, y+h-r, r, Math.PI/2, Math.PI);
+    ctx.lineTo(x, y+r);
+    ctx.arc(x+r, y+r, r, Math.PI, -Math.PI/2);
+    ctx.closePath();
+  }
+
+  if (inviteCode) {
+    // 邀請碼背景
+    const invGrad = ctx.createLinearGradient(120, 390, 480, 470);
+    invGrad.addColorStop(0, 'rgba(212,168,67,0.15)');
+    invGrad.addColorStop(1, 'rgba(212,168,67,0.05)');
+    roundRectFill(ctx, 120, 385, 360, 90, 10);
+    ctx.fillStyle = invGrad;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(212,168,67,0.3)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(212,168,67,0.5)';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
     ctx.font = '13px serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fillText('用我的邀請碼，你也能來試試運氣 👇', 300, 418);
-    ctx.font = 'bold 26px monospace';
-    ctx.fillStyle = '#d4a843';
-    ctx.letterSpacing = '8px';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.letterSpacing = '1px';
+    ctx.fillText('用我的邀請碼，你也能來試試命運 👇', 300, 412);
+
+    // 邀請碼大字
+    ctx.font = 'bold 30px monospace';
+    ctx.fillStyle = '#f0c96a';
+    ctx.letterSpacing = '10px';
     ctx.fillText(inviteCode, 300, 452);
   }
+
+  // 底部 CTA
+  ctx.font = 'bold 15px serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.letterSpacing = '1px';
+  ctx.fillText('每日一抽，命運由你決定', 300, 510);
 
   // 網址
   ctx.font = '14px monospace';
@@ -2917,6 +2938,10 @@ function agreeTerms() {
   closeTermsModal();
 }
 function checkTermsThenSpin() {
+  if (sysSettings.paused) {
+    alert('⚠️ 抽獎目前暫停中，請稍後再試');
+    return;
+  }
   const checked = document.getElementById('terms-check').checked;
   if (!checked) {
     alert('請先閱讀並同意服務條款');
@@ -3347,7 +3372,7 @@ async function saveSettings() {
   sysSettings.paused = document.getElementById('setting-pause').checked;
   showLoading('儲存中…');
   try {
-    // 存到 Supabase app_settings
+    // 用 upsert 確保永遠能寫入
     const rows = await dbSelect('app_settings', '');
     if (rows.length) {
       await dbUpdate('app_settings', `id=eq.${rows[0].id}`, {
@@ -3361,10 +3386,28 @@ async function saveSettings() {
       });
     }
     updateNoticeBanner();
+    // 同步暫停狀態到前台抽獎按鈕
+    syncPauseState();
     hideLoading();
     alert('✅ 設定已儲存');
   } catch(e) {
     showError('儲存失敗：' + e.message);
+  }
+}
+
+function syncPauseState() {
+  const btn = document.getElementById('spin-btn');
+  if (!btn) return;
+  if (sysSettings.paused) {
+    btn.disabled = true;
+    btn.textContent = '暫停中';
+    btn.style.background = 'var(--surface2)';
+    btn.style.color = 'var(--text-dim)';
+  } else {
+    btn.disabled = false;
+    btn.textContent = '抽　獎';
+    btn.style.background = '';
+    btn.style.color = '';
   }
 }
 
@@ -3381,11 +3424,7 @@ function updateNoticeBanner() {
 
 function togglePause() {
   sysSettings.paused = document.getElementById('setting-pause').checked;
-  const btn = document.getElementById('spin-btn');
-  if (btn) {
-    btn.disabled = sysSettings.paused;
-    btn.textContent = sysSettings.paused ? '暫停中' : '抽　獎';
-  }
+  syncPauseState();
 }
 
 </script>
