@@ -2808,145 +2808,200 @@ async function triggerReferralReward() {
 // 分享結果
 // ══════════════════════════════════════
 function shareResult() {
+  // 取得獎品資料（從 state 拿正確名稱，不從DOM取）
   const prizeName = document.getElementById('result-name').textContent;
-  const prizeEmoji = document.getElementById('result-emoji').textContent;
+  const prizeEmojiEl = document.getElementById('result-emoji').textContent;
+  const prizeImgEl = document.getElementById('result-img');
+  const hasImg = prizeImgEl && prizeImgEl.style.display !== 'none' && prizeImgEl.src;
   const inviteCode = state.user?.invite_code || '';
 
-  // 建立分享 canvas
   const canvas = document.createElement('canvas');
-  canvas.width = 600; canvas.height = 600;
+  canvas.width = 600; canvas.height = 660;
   const ctx = canvas.getContext('2d');
 
-  // 背景漸層
-  const grad = ctx.createLinearGradient(0, 0, 600, 600);
-  grad.addColorStop(0, '#1a0a2e');
-  grad.addColorStop(0.3, '#0d1b2a');
-  grad.addColorStop(0.6, '#1a0a0a');
-  grad.addColorStop(1, '#0a1a0a');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 600, 600);
+  function drawCard() {
+    // ── 背景：深色科技感 ──
+    ctx.fillStyle = '#050810';
+    ctx.fillRect(0, 0, 600, 660);
 
-  // 彩色光暈
-  const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff'];
-  colors.forEach((c, i) => {
-    const glow = ctx.createRadialGradient(
-      100 + i*100, 100 + (i%2)*300, 0,
-      100 + i*100, 100 + (i%2)*300, 150
-    );
-    glow.addColorStop(0, c + '40');
-    glow.addColorStop(1, 'transparent');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, 600, 600);
-  });
+    // 網格線背景
+    ctx.strokeStyle = 'rgba(0,180,255,0.06)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < 600; x += 30) {
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,660); ctx.stroke();
+    }
+    for (let y = 0; y < 660; y += 30) {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(600,y); ctx.stroke();
+    }
 
-  // 裝飾星星
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  for (let i = 0; i < 30; i++) {
-    const x = Math.random()*600, y = Math.random()*600;
-    const s = Math.random()*2+0.5;
-    ctx.fillRect(x, y, s, s);
+    // 主光暈（藍紫色）
+    const mainGlow = ctx.createRadialGradient(300, 280, 0, 300, 280, 320);
+    mainGlow.addColorStop(0, 'rgba(80,40,200,0.35)');
+    mainGlow.addColorStop(0.5, 'rgba(0,100,255,0.12)');
+    mainGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = mainGlow;
+    ctx.fillRect(0, 0, 600, 660);
+
+    // 角落光點
+    [[0,0,'#00f0ff'],[600,0,'#ff00aa'],[0,660,'#7000ff'],[600,660,'#00ff88']].forEach(([x,y,c]) => {
+      const g = ctx.createRadialGradient(x,y,0,x,y,200);
+      g.addColorStop(0, c+'30'); g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(0,0,600,660);
+    });
+
+    // 掃光線效果
+    ctx.save();
+    ctx.globalAlpha = 0.04;
+    for (let i = 0; i < 8; i++) {
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(300 - i*40, 0);
+      ctx.lineTo(300 + i*20, 660);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // ── 頂部品牌 ──
+    // 科技線條
+    ctx.strokeStyle = 'rgba(0,200,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(40,52); ctx.lineTo(220,52); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(380,52); ctx.lineTo(560,52); ctx.stroke();
+
+    // 品牌名（分散字）
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#00d4ff';
+    ctx.letterSpacing = '12px';
+    ctx.fillText('命 運 膠 囊', 300, 48);
+
+    // 副標
+    ctx.font = '11px monospace';
+    ctx.fillStyle = 'rgba(0,212,255,0.5)';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('CAPSULE  OF  FATE', 300, 72);
+
+    // ── 獎品展示區 ──
+    // 外框六邊形感（用矩形模擬）
+    ctx.strokeStyle = 'rgba(0,180,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(80, 100, 440, 240);
+    // 四角裝飾
+    const corners = [[80,100],[520,100],[80,340],[520,340]];
+    corners.forEach(([x,y]) => {
+      const dx = x===80?1:-1, dy = y===100?1:-1;
+      ctx.strokeStyle = '#00d4ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x,y+dy*20); ctx.lineTo(x,y); ctx.lineTo(x+dx*20,y); ctx.stroke();
+    });
+
+    // 獎品圖片或 emoji
+    if (hasImg) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(300, 220, 85, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(img, 215, 135, 170, 170);
+        ctx.restore();
+        finishCard();
+      };
+      img.onerror = () => {
+        drawEmoji();
+        finishCard();
+      };
+      img.src = prizeImgEl.src;
+    } else {
+      drawEmoji();
+      finishCard();
+    }
   }
 
-  // 品牌標題
-  ctx.font = 'bold 18px serif';
-  ctx.fillStyle = '#d4a843';
-  ctx.textAlign = 'center';
-  ctx.letterSpacing = '6px';
-  ctx.fillText('命　運　膠　囊', 300, 60);
-
-  // 分隔線
-  ctx.strokeStyle = 'rgba(212,168,67,0.4)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(80,75); ctx.lineTo(520,75); ctx.stroke();
-
-  // 大emoji
-  ctx.font = '96px serif';
-  ctx.fillText(prizeEmoji, 300, 210);
-
-  // 「我抽到了」
-  ctx.font = '16px serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.fillText('我剛剛抽到了', 300, 280);
-
-  // 獎品名稱（大字漸層）
-  const textGrad = ctx.createLinearGradient(100, 300, 500, 360);
-  textGrad.addColorStop(0, '#ffd93d');
-  textGrad.addColorStop(0.5, '#ff6b6b');
-  textGrad.addColorStop(1, '#c77dff');
-  ctx.font = 'bold 44px serif';
-  ctx.fillStyle = textGrad;
-  ctx.fillText(prizeName, 300, 345);
-
-  // 邀請碼區塊（roundRect fallback）
-  function roundRectFill(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.lineTo(x+w-r, y);
-    ctx.arc(x+w-r, y+r, r, -Math.PI/2, 0);
-    ctx.lineTo(x+w, y+h-r);
-    ctx.arc(x+w-r, y+h-r, r, 0, Math.PI/2);
-    ctx.lineTo(x+r, y+h);
-    ctx.arc(x+r, y+h-r, r, Math.PI/2, Math.PI);
-    ctx.lineTo(x, y+r);
-    ctx.arc(x+r, y+r, r, Math.PI, -Math.PI/2);
-    ctx.closePath();
+  function drawEmoji() {
+    ctx.font = '88px serif';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '0px';
+    ctx.fillText(prizeEmojiEl.startsWith('http') ? '🎁' : prizeEmojiEl, 300, 255);
   }
 
-  if (inviteCode) {
-    // 邀請碼背景
-    const invGrad = ctx.createLinearGradient(120, 390, 480, 470);
-    invGrad.addColorStop(0, 'rgba(212,168,67,0.15)');
-    invGrad.addColorStop(1, 'rgba(212,168,67,0.05)');
-    roundRectFill(ctx, 120, 385, 360, 90, 10);
-    ctx.fillStyle = invGrad;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(212,168,67,0.5)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+  function finishCard() {
+    // 「我抽到了」
+    ctx.font = '14px monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('[ RESULT ]', 300, 375);
 
-    ctx.font = '13px serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    // 獎品名稱漸層大字
+    const ng = ctx.createLinearGradient(150, 390, 450, 430);
+    ng.addColorStop(0, '#00f0ff');
+    ng.addColorStop(0.5, '#ffffff');
+    ng.addColorStop(1, '#ff88ff');
+    ctx.font = 'bold 42px serif';
+    ctx.fillStyle = ng;
+    ctx.letterSpacing = '2px';
+    // 長字自動縮小
+    const nameW = ctx.measureText(prizeName).width;
+    if (nameW > 440) ctx.font = 'bold 30px serif';
+    ctx.fillText(prizeName, 300, 425);
+
+    // 邀請碼區
+    if (inviteCode) {
+      // 背景
+      ctx.fillStyle = 'rgba(0,180,255,0.08)';
+      ctx.fillRect(100, 455, 400, 76);
+      ctx.strokeStyle = 'rgba(0,180,255,0.35)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(100, 455, 400, 76);
+      // 角落光點
+      ctx.fillStyle = '#00d4ff';
+      ctx.fillRect(100,455,6,2); ctx.fillRect(100,455,2,6);
+      ctx.fillRect(494,455,6,2); ctx.fillRect(498,455,2,6);
+      ctx.fillRect(100,529,6,2); ctx.fillRect(100,525,2,6);
+      ctx.fillRect(494,529,6,2); ctx.fillRect(498,525,2,6);
+
+      ctx.font = '12px monospace';
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.letterSpacing = '1px';
+      ctx.fillText('── 用邀請碼加入，雙方獲得獎勵 ──', 300, 477);
+
+      ctx.font = 'bold 28px monospace';
+      ctx.fillStyle = '#00f0ff';
+      ctx.letterSpacing = '12px';
+      ctx.fillText(inviteCode, 300, 513);
+    }
+
+    // 底部
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.letterSpacing = '2px';
+    ctx.fillText('每日一抽，命運由你決定', 300, 580);
+
+    ctx.font = '11px monospace';
+    ctx.fillStyle = 'rgba(0,200,255,0.4)';
     ctx.letterSpacing = '1px';
-    ctx.fillText('用我的邀請碼，你也能來試試命運 👇', 300, 412);
+    ctx.fillText('gacha-self-one.vercel.app', 300, 605);
 
-    // 邀請碼大字
-    ctx.font = 'bold 30px monospace';
-    ctx.fillStyle = '#f0c96a';
-    ctx.letterSpacing = '10px';
-    ctx.fillText(inviteCode, 300, 452);
+    // 底部橫線
+    const bl = ctx.createLinearGradient(0,625,600,625);
+    bl.addColorStop(0,'transparent'); bl.addColorStop(0.3,'#00d4ff');
+    bl.addColorStop(0.7,'#ff00aa'); bl.addColorStop(1,'transparent');
+    ctx.strokeStyle = bl; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,628); ctx.lineTo(600,628); ctx.stroke();
+
+    // 下載
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = '命運膠囊_抽獎結果.png'; a.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
-  // 底部 CTA
-  ctx.font = 'bold 15px serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.letterSpacing = '1px';
-  ctx.fillText('每日一抽，命運由你決定', 300, 510);
-
-  // 網址
-  ctx.font = '14px monospace';
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.letterSpacing = '1px';
-  ctx.fillText('gacha-self-one.vercel.app', 300, 560);
-
-  // 底部光線
-  const bottomGrad = ctx.createLinearGradient(0, 580, 600, 580);
-  bottomGrad.addColorStop(0, 'transparent');
-  bottomGrad.addColorStop(0.3, '#d4a843');
-  bottomGrad.addColorStop(0.7, '#d4a843');
-  bottomGrad.addColorStop(1, 'transparent');
-  ctx.strokeStyle = bottomGrad;
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0,580); ctx.lineTo(600,580); ctx.stroke();
-
-  // 下載圖片
-  canvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '命運膠囊_抽獎結果.png';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
+  drawCard();
 }
 
 // ══════════════════════════════════════
