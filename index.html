@@ -1048,6 +1048,7 @@
 
   <!-- Sub Pages -->
   <div id="sub-gacha" style="flex:1;display:flex;flex-direction:column">
+    <div id="notice-banner" style="display:none;background:rgba(212,168,67,0.12);border-bottom:1px solid rgba(212,168,67,0.3);padding:10px 16px;text-align:center;font-size:12px;color:var(--gold);letter-spacing:1px;line-height:1.6"></div>
     <div class="gacha-content">
       <div class="machine-wrap-new">
         <!-- 機身外框 -->
@@ -1234,10 +1235,11 @@
     <!-- ── TAB 1: 出貨管理 ── -->
     <div id="admin-orders">
       <!-- Filter -->
-      <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
         <button class="filter-btn active" id="filter-pending" onclick="filterOrders('pending')">待出貨</button>
         <button class="filter-btn" id="filter-shipped" onclick="filterOrders('shipped')">已出貨</button>
         <button class="filter-btn" id="filter-all" onclick="filterOrders('all')">全部</button>
+        <button onclick="deleteAllShipped()" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:20px;padding:6px 16px;font-size:12px;letter-spacing:1px;cursor:pointer;margin-left:auto">清除已出貨</button>
       </div>
       <div id="admin-orders-list"></div>
     </div>
@@ -2171,6 +2173,22 @@ async function renderAdminOrders() {
   }
 }
 
+async function deleteAllShipped() {
+  if (!confirm('確定要清除所有已出貨的申請紀錄？此操作無法復原')) return;
+  showLoading('清除中…');
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/shipment_requests?status=eq.shipped`, {
+      method: 'DELETE',
+      headers: headers(state.token)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    hideLoading();
+    renderAdminOrders();
+  } catch(e) {
+    showError('清除失敗：' + e.message);
+  }
+}
+
 async function deleteShipment(reqId) {
   if (!confirm('確定要刪除此出貨申請？')) return;
   showLoading('刪除中…');
@@ -2798,7 +2816,20 @@ function saveSettings() {
   sysSettings.dailyLimit = parseInt(document.getElementById('setting-daily-limit').value) || 1;
   sysSettings.notice = document.getElementById('setting-notice').value;
   sysSettings.lineId = document.getElementById('setting-line').value;
+  // 同步公告到前台
+  updateNoticeBanner();
   alert('✅ 設定已儲存');
+}
+
+function updateNoticeBanner() {
+  const banner = document.getElementById('notice-banner');
+  if (!banner) return;
+  if (sysSettings.notice && sysSettings.notice.trim()) {
+    banner.textContent = sysSettings.notice;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
 function togglePause() {
