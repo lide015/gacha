@@ -2174,16 +2174,24 @@ async function renderAdminOrders() {
 }
 
 async function deleteAllShipped() {
-  if (!confirm('確定要清除所有已出貨的申請紀錄？此操作無法復原')) return;
+  if (!confirm('確定要清除所有已出貨的紀錄？此操作無法復原')) return;
   showLoading('清除中…');
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/shipment_requests?status=eq.shipped`, {
+    // 刪 spins 裡已出貨的
+    const r1 = await fetch(`${SUPABASE_URL}/rest/v1/spins?status=eq.shipped`, {
       method: 'DELETE',
       headers: headers(state.token)
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!r1.ok) throw new Error(await r1.text());
+    // 刪 shipment_requests 裡已出貨的
+    const r2 = await fetch(`${SUPABASE_URL}/rest/v1/shipment_requests?status=eq.shipped`, {
+      method: 'DELETE',
+      headers: headers(state.token)
+    });
+    if (!r2.ok) throw new Error(await r2.text());
     hideLoading();
     renderAdminOrders();
+    updateAdminStats();
   } catch(e) {
     showError('清除失敗：' + e.message);
   }
