@@ -571,6 +571,11 @@
     color: var(--green);
     border: 1px solid rgba(74, 158, 107, 0.4);
   }
+  .status-done {
+    background: rgba(100, 100, 100, 0.15);
+    color: var(--text-dim);
+    border: 1px solid rgba(100, 100, 100, 0.3);
+  }
 
   /* ── ADMIN PAGE ── */
   .admin-content {
@@ -1363,7 +1368,7 @@
     <div class="result-label">恭喜您抽到</div>
     <div class="result-name" id="result-name">—</div>
     <div class="result-desc" id="result-desc">—</div>
-    <div class="result-note" id="result-note" style="display:none">📱 請截圖後至官方 LINE 回報，我們將為您安排寄送</div>
+    <div class="result-note" id="result-note" style="display:none">🎁 獎品已累積至「個人頁面」，可累積多樣商品後再一次申請出貨</div>
     <button class="btn-close" onclick="closeResult()">確　認</button>
   </div>
 </div>
@@ -2540,16 +2545,36 @@ function renderShipmentHistory() {
     return;
   }
   list.innerHTML = state.shipments.map(s => `
-    <div class="order-card">
-      <div>
-        <div class="order-prize">出貨申請</div>
-        <div class="order-date">${new Date(s.created_at).toLocaleDateString('zh-TW')}</div>
+    <div class="order-card" style="flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+        <div>
+          <div class="order-prize">出貨申請</div>
+          <div class="order-date">${new Date(s.created_at).toLocaleDateString('zh-TW')}</div>
+          <div class="order-date" style="margin-top:4px">${Object.entries(s.items||{}).map(([n,q])=>n+' ×'+q).join('、')}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="status-badge ${s.status === 'pending' ? 'status-pending' : s.status === 'shipped' ? 'status-shipped' : 'status-done'}">
+            ${s.status === 'pending' ? '處理中' : s.status === 'shipped' ? '已寄出' : '已完成'}
+          </div>
+          ${s.status === 'shipped' ? `<button onclick="completeOrder('${s.id}')" style="background:var(--green);border:none;color:white;border-radius:2px;padding:6px 12px;font-family:'Noto Serif TC',serif;font-size:11px;letter-spacing:2px;cursor:pointer">完成訂單</button>` : ''}
+        </div>
       </div>
-      <div class="status-badge ${s.status === 'pending' ? 'status-pending' : 'status-shipped'}">
-        ${s.status === 'pending' ? '處理中' : '已寄出'}
-      </div>
+      ${s.status === 'shipped' ? `<div style="font-size:11px;color:var(--text-dim);letter-spacing:0.5px;background:var(--surface2);border-radius:2px;padding:8px 10px;line-height:1.8">收到商品後請按「完成訂單」確認取貨。如有任何問題請聯繫 <a href="https://lin.ee/5kRSaZx" target="_blank" style="color:var(--gold)">官方 LINE</a></div>` : ''}
     </div>
   `).join('');
+}
+
+async function completeOrder(shipmentId) {
+  if (!confirm('確認已收到商品？')) return;
+  showLoading('更新中…');
+  try {
+    await dbUpdate('shipment_requests', `id=eq.${shipmentId}`, { status: 'done' });
+    state.shipments = await dbSelect('shipment_requests', `user_id=eq.${state.user.id}&order=created_at.desc`);
+    renderShipmentHistory();
+    hideLoading();
+  } catch(e) {
+    showError('更新失敗：' + e.message);
+  }
 }
 
 async function applyShipment() {
