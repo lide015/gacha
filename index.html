@@ -1109,6 +1109,15 @@
         <label>密碼</label>
         <input type="password" id="login-pass" placeholder="••••••••">
       </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px">
+        <input type="checkbox" id="login-terms-check" style="margin-top:3px;accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+        <label for="login-terms-check" style="font-size:11px;color:var(--text-dim);letter-spacing:0.5px;cursor:pointer;line-height:1.6">
+          我已閱讀並同意
+          <a onclick="showLoginTermsModal()" style="color:var(--gold);cursor:pointer">《服務條款》</a>
+          與
+          <a onclick="showPrivacyModal()" style="color:var(--gold);cursor:pointer">《隱私保密協議》</a>
+        </label>
+      </div>
       <button class="btn-primary" onclick="doLogin()">登　入</button>
       <div class="login-switch">還沒有帳號？<a onclick="showRegister()">立即註冊</a></div>
     </div>
@@ -1131,8 +1140,39 @@
         <input type="text" id="reg-invite" placeholder="朋友的邀請碼" style="text-transform:uppercase">
         <div style="font-size:11px;color:var(--text-dim);margin-top:6px;letter-spacing:0.5px">填寫邀請碼並完成首次付費後，雙方各獲得獎勵券</div>
       </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px">
+        <input type="checkbox" id="reg-terms-check" style="margin-top:3px;accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+        <label for="reg-terms-check" style="font-size:11px;color:var(--text-dim);letter-spacing:0.5px;cursor:pointer;line-height:1.6">
+          我已閱讀並同意
+          <a onclick="showLoginTermsModal()" style="color:var(--gold);cursor:pointer">《服務條款》</a>
+          與
+          <a onclick="showPrivacyModal()" style="color:var(--gold);cursor:pointer">《隱私保密協議》</a>
+        </label>
+      </div>
       <button class="btn-primary" onclick="doRegister()">註　冊</button>
       <div class="login-switch">已有帳號？<a onclick="showLogin()">返回登入</a></div>
+    </div>
+
+    <!-- 信任保證 -->
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+      <div style="font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:2px;margin-bottom:14px">安全保證</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim);letter-spacing:0.5px">
+          <span style="color:#4a9e6b;font-size:14px">✓</span>真實個人品牌，非詐騙集團
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim);letter-spacing:0.5px">
+          <span style="color:#4a9e6b;font-size:14px">✓</span>獎品實際存在，抽到就寄出
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim);letter-spacing:0.5px">
+          <span style="color:#4a9e6b;font-size:14px">✓</span>金流由綠界科技處理，不經手現金
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim);letter-spacing:0.5px">
+          <span style="color:#4a9e6b;font-size:14px">✓</span>有疑慮可先加官方 LINE 確認再購買
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <a href="https://lin.ee/5kRSaZx" target="_blank" style="font-size:11px;color:var(--gold);letter-spacing:1px;text-decoration:none">官方 LINE 聯繫 →</a>
+      </div>
     </div>
   </div>
 </div>
@@ -1566,6 +1606,31 @@
   </div>
 </div>
 
+<!-- 隱私保密協議 Modal -->
+<div class="modal-overlay" id="privacy-modal">
+  <div class="result-modal" style="max-height:85vh;overflow-y:auto;text-align:left">
+    <div style="font-size:14px;font-weight:900;color:var(--gold);letter-spacing:3px;margin-bottom:20px;text-align:center">隱私保密協議</div>
+    <div style="font-size:12px;color:var(--text-dim);line-height:2;letter-spacing:0.5px">
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">一、資料蒐集範圍</p>
+      <p style="margin-bottom:14px">本平台僅蒐集您的姓名、手機號碼及超商收件資訊，用於帳號管理及獎品寄送。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">二、資料使用目的</p>
+      <p style="margin-bottom:4px">1. 您的個人資料僅用於本平台服務，包含帳號識別、獎品寄送及客服聯繫。</p>
+      <p style="margin-bottom:14px">2. 本平台不會將您的個人資料出售、出租或提供給任何第三方。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">三、資料保護措施</p>
+      <p style="margin-bottom:4px">1. 所有資料透過 Supabase 加密儲存，金流資料由綠界科技負責處理。</p>
+      <p style="margin-bottom:14px">2. 本平台不會儲存您的付款卡號或金融資訊。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">四、資料查詢與刪除</p>
+      <p style="margin-bottom:14px">您有權要求查詢、更正或刪除您的個人資料，請透過官方 LINE 聯繫。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">五、Cookie 使用</p>
+      <p style="margin-bottom:14px">本平台使用必要的 Cookie 維持登入狀態，不使用追蹤性 Cookie。</p>
+      <p style="color:var(--text);font-weight:700;margin-bottom:4px">六、聯繫方式</p>
+      <p>如有隱私相關疑問，請透過官方 LINE 聯繫，我們將於 3 個工作天內回覆。</p>
+    </div>
+    <button class="btn-primary" onclick="agreePrivacy()" style="margin-top:20px;margin-bottom:10px">我已閱讀並同意</button>
+    <button class="btn-close" onclick="closePrivacyModal()">關　閉</button>
+  </div>
+</div>
+
 <!-- 條款 Modal -->
 <div class="modal-overlay" id="terms-modal">
   <div class="result-modal" style="max-height:85vh;overflow-y:auto;text-align:left">
@@ -1868,6 +1933,8 @@ function showLogin() {
 }
 
 async function doLogin() {
+  const termsCheck = document.getElementById('login-terms-check');
+  if (termsCheck && !termsCheck.checked) return alert('請先閱讀並同意服務條款與隱私保密協議');
   const phone = document.getElementById('login-phone').value.trim();
   const pass = document.getElementById('login-pass').value;
   if (!phone || !pass) return alert('請填寫所有欄位');
@@ -1894,6 +1961,8 @@ async function doLogin() {
 }
 
 async function doRegister() {
+  const termsCheck = document.getElementById('reg-terms-check');
+  if (termsCheck && !termsCheck.checked) return alert('請先閱讀並同意服務條款與隱私保密協議');
   const name = document.getElementById('reg-name').value.trim();
   const phone = document.getElementById('reg-phone').value.trim();
   const pass = document.getElementById('reg-pass').value;
@@ -3201,6 +3270,27 @@ function closeTermsModal() {
 function agreeTerms() {
   document.getElementById('terms-check').checked = true;
   closeTermsModal();
+}
+
+// 登入/註冊頁條款
+function showLoginTermsModal() {
+  document.getElementById('terms-modal').classList.add('show');
+}
+
+// 隱私保密協議
+function showPrivacyModal() {
+  document.getElementById('privacy-modal').classList.add('show');
+}
+function closePrivacyModal() {
+  document.getElementById('privacy-modal').classList.remove('show');
+}
+function agreePrivacy() {
+  // 同時勾選登入和註冊的條款
+  const lc = document.getElementById('login-terms-check');
+  const rc = document.getElementById('reg-terms-check');
+  if (lc) lc.checked = true;
+  if (rc) rc.checked = true;
+  closePrivacyModal();
 }
 function checkTermsThenSpin() {
   if (sysSettings.paused) {
