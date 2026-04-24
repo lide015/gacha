@@ -1599,6 +1599,54 @@
   </div>
 </div>
 
+<!-- 後台編輯獎品 Modal -->
+<div class="modal-overlay" id="edit-prize-modal">
+  <div class="result-modal" style="max-height:90vh;overflow-y:auto">
+    <div class="result-label" style="margin-bottom:20px">編輯獎品</div>
+    <input type="hidden" id="edit-prize-id">
+    <div class="form-group">
+      <label>獎品名稱</label>
+      <input type="text" id="edit-prize-name">
+    </div>
+    <div class="form-group">
+      <label>說明文字</label>
+      <input type="text" id="edit-prize-desc">
+    </div>
+    <div class="form-group">
+      <label>Emoji 圖示（無圖片時顯示）</label>
+      <input type="text" id="edit-prize-emoji" style="font-size:20px">
+    </div>
+    <div class="form-group">
+      <label>庫存數量</label>
+      <input type="number" id="edit-prize-stock" min="0">
+    </div>
+    <div class="form-group">
+      <label>抽獎權重（數字越大越容易抽到）</label>
+      <input type="number" id="edit-prize-weight" min="1">
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="edit-prize-unlimited">
+        無限庫存
+      </label>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="edit-prize-physical">
+        實體商品
+      </label>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="edit-prize-freespin">
+        免費再抽
+      </label>
+    </div>
+    <button class="btn-primary" onclick="saveEditPrize()" style="margin-bottom:12px">儲存</button>
+    <button class="btn-close" onclick="closeEditPrize()">取消</button>
+  </div>
+</div>
+
 <!-- 獎品詳細 Modal -->
 <div class="modal-overlay" id="prize-detail-modal">
   <div class="result-modal">
@@ -1983,17 +2031,42 @@ function switchSub(tab) {
 // ══════════════════════════════════════
 // GACHA LOGIC
 // ══════════════════════════════════════
-function getAvailablePrizes() {
-  return state.prizes.filter(p => p.isUnlimited || p.stock > 0);
+// 免費券不能抽到的商品名稱清單
+const FREE_TICKET_BLOCKED = [
+  '獎金600元', '獎金1000元', '400%泡泡馬特',
+  '盲盒', '生活用品', '商品卡50元', '150元早餐券'
+];
+
+// 銘謝惠顧的名稱
+const THANKS_NAME = '銘謝惠顧';
+
+function getAvailablePrizes(isFree = false) {
+  let prizes = state.prizes.filter(p => p.isUnlimited || p.stock > 0);
+  if (isFree) {
+    // 免費券過濾掉指定商品
+    prizes = prizes.filter(p => !FREE_TICKET_BLOCKED.includes(p.name));
+  }
+  return prizes;
 }
 
-function weightedRandom(prizes) {
+function weightedRandom(prizes, isFree = false) {
+  if (isFree) {
+    // 免費券：銘謝惠顧機率 90%，其他 10%
+    const thanks = prizes.find(p => p.name === THANKS_NAME);
+    const others = prizes.filter(p => p.name !== THANKS_NAME);
+    if (thanks && others.length) {
+      if (Math.random() < 0.90) return thanks;
+      // 剩下 10% 用正常權重抽其他
+      const total = others.reduce((s, p) => s + p.weight, 0);
+      let r = Math.random() * total;
+      for (const p of others) { r -= p.weight; if (r <= 0) return p; }
+      return others[others.length - 1];
+    }
+  }
+  // 正常付費券：用權重
   const total = prizes.reduce((s, p) => s + p.weight, 0);
   let r = Math.random() * total;
-  for (const p of prizes) {
-    r -= p.weight;
-    if (r <= 0) return p;
-  }
+  for (const p of prizes) { r -= p.weight; if (r <= 0) return p; }
   return prizes[prizes.length - 1];
 }
 
@@ -2019,11 +2092,14 @@ async function doSpin() {
     state.user.tickets--;
     updateTicketCount();
 
-    // 2. 抽獎
+    // 2. 抽獎（判斷免費券或付費券）
     await loadPrizes();
-    const available = getAvailablePrizes();
+    const isFreeTicket = state.user.freeTicketUsed || false;
+    const available = getAvailablePrizes(isFreeTicket);
     if (!available.length) throw new Error('目前沒有可抽的獎品');
-    const prize = weightedRandom(available);
+    const prize = weightedRandom(available, isFreeTicket);
+    // 重置免費券標記
+    if (state.user.freeTicketUsed) state.user.freeTicketUsed = false;
 
     // 3. 扣庫存（非無限）
     if (!prize.isUnlimited) {
@@ -2035,6 +2111,7 @@ async function doSpin() {
     if (prize.isFreeSpin) {
       await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: state.user.tickets + 1 });
       state.user.tickets++;
+      state.user.freeTicketUsed = true; // 標記下一張為免費券
       updateTicketCount();
     }
 
@@ -2241,10 +2318,18 @@ async function recordDailyPurchase() {
 }
 
 async function simulatePurchase() {
-  // TODO: 串綠界後這裡改成轉跳付款頁
+  // 綠界審核中，暫不開放付款
+  hideLoading();
+  closePurchase();
+  alert('⚠️ 金流審核中，付款功能即將開放，敬請期待！
+
+如有需要請聯繫官方 LINE');
+}
+
+// 串綠界後啟用此函數
+async function processPurchase() {
   showLoading('確認資格中…');
   try {
-    // 每日限購檢查
     const alreadyBought = await checkDailyLimit();
     if (alreadyBought) {
       hideLoading();
@@ -2252,17 +2337,13 @@ async function simulatePurchase() {
       alert('⚠️ 今日已購買過，明天再來！\n（每日台灣時間 00:00 重置）');
       return;
     }
-
     showLoading('處理付款…');
     const newTickets = (state.user.tickets || 0) + 1;
     await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: newTickets });
     await recordDailyPurchase();
     state.user.tickets = newTickets;
     updateTicketCount();
-
-    // 首次付費觸發邀請獎勵
     await triggerReferralReward();
-
     document.getElementById('no-ticket-msg').style.display = 'none';
     hideLoading();
     closePurchase();
@@ -2519,6 +2600,7 @@ function renderAdminPrizes() {
           <span class="stock-num" id="stock-${p.id}">${p.stock}</span>
           <button class="stock-btn" onclick="adjustStock('${p.id}', 1)">＋</button>
         </div>` : '<span style="font-size:11px;color:var(--text-dim)">無限</span>'}
+        <button onclick="showEditPrize('${p.id}')" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:2px;padding:3px 10px;font-size:11px;cursor:pointer;letter-spacing:1px;margin-bottom:4px">編輯</button>
         <button onclick="deletePrize('${p.id}')" style="background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;letter-spacing:1px">刪除</button>
       </div>
     </div>
@@ -2564,6 +2646,61 @@ function toggleUnlimitedStock() {
   stockInput.disabled = unlimited;
   stockInput.style.opacity = unlimited ? '0.4' : '1';
   if (unlimited) stockInput.value = '0';
+}
+
+function showEditPrize(prizeId) {
+  const p = state.prizes.find(x => x.id === prizeId);
+  if (!p) return;
+  document.getElementById('edit-prize-id').value = p.id;
+  document.getElementById('edit-prize-name').value = p.name;
+  document.getElementById('edit-prize-desc').value = p.desc || '';
+  document.getElementById('edit-prize-emoji').value = (p.emoji && !p.emoji.startsWith('http')) ? p.emoji : '🎁';
+  document.getElementById('edit-prize-stock').value = p.stock;
+  document.getElementById('edit-prize-weight').value = p.weight;
+  document.getElementById('edit-prize-unlimited').checked = p.isUnlimited;
+  document.getElementById('edit-prize-physical').checked = p.isPhysical;
+  document.getElementById('edit-prize-freespin').checked = p.isFreeSpin;
+  document.getElementById('edit-prize-stock').disabled = p.isUnlimited;
+  document.getElementById('edit-prize-modal').classList.add('show');
+}
+
+function closeEditPrize() {
+  document.getElementById('edit-prize-modal').classList.remove('show');
+}
+
+async function saveEditPrize() {
+  const id = document.getElementById('edit-prize-id').value;
+  const name = document.getElementById('edit-prize-name').value.trim();
+  const desc = document.getElementById('edit-prize-desc').value.trim();
+  const emoji = document.getElementById('edit-prize-emoji').value.trim() || '🎁';
+  const stock = parseInt(document.getElementById('edit-prize-stock').value) || 0;
+  const weight = parseInt(document.getElementById('edit-prize-weight').value) || 10;
+  const isUnlimited = document.getElementById('edit-prize-unlimited').checked;
+  const isPhysical = document.getElementById('edit-prize-physical').checked;
+  const isFreeSpin = document.getElementById('edit-prize-freespin').checked;
+  if (!name) return alert('請填寫獎品名稱');
+  showLoading('儲存中…');
+  try {
+    // 保留原本的圖片URL（如果有的話）
+    const p = state.prizes.find(x => x.id === id);
+    const imageUrl = (p && p.emoji && p.emoji.startsWith('http')) ? p.emoji : emoji;
+    await dbUpdate('prizes', `id=eq.${id}`, {
+      name,
+      description: desc,
+      image_url: imageUrl,
+      stock: isUnlimited ? 0 : stock,
+      is_unlimited: isUnlimited,
+      is_physical: isPhysical,
+      is_free_spin: isFreeSpin,
+      weight
+    });
+    await loadPrizes();
+    closeEditPrize();
+    renderAdminPrizes();
+    hideLoading();
+  } catch(e) {
+    showError('儲存失敗：' + e.message);
+  }
 }
 
 function showAddPrize() {
@@ -2703,8 +2840,7 @@ async function loadAndRenderAdminUsers() {
 }
 
 async function deleteUser(userId, userName) {
-  if (!confirm(`確定要刪除用戶「${userName}」？
-此操作會同時刪除該用戶的所有抽獎紀錄，無法復原。`)) return;
+  if (!confirm(`確定要刪除用戶「${userName}」？\n此操作會同時刪除該用戶的所有抽獎紀錄，無法復原。`)) return;
   showLoading('刪除中…');
   try {
     // 先刪除相關資料
@@ -2785,8 +2921,7 @@ async function loadInviteInfo() {
 function copyInviteCode() {
   const code = document.getElementById('my-invite-code').textContent;
   if (!code || code === '——') return;
-  const text = `我在玩命運膠囊扭蛋！用我的邀請碼 ${code} 註冊，首次付費後你獲得+1張券，我獲得+2張券！
-https://gacha-self-one.vercel.app`;
+  const text = `我在玩命運膠囊扭蛋！用我的邀請碼 ${code} 註冊，首次付費後你獲得+1張券，我獲得+2張券！\nhttps://gacha-self-one.vercel.app`;
   navigator.clipboard.writeText(text).then(() => {
     alert('✅ 已複製邀請訊息！貼給朋友就可以了');
   }).catch(() => {
@@ -2809,10 +2944,11 @@ async function triggerReferralReward() {
       });
     }
 
-    // 發獎勵給被邀請人 +1 券
+    // 發獎勵給被邀請人 +1 券（免費券）
     const newTickets = (state.user.tickets || 0) + 1;
     await dbUpdate('users', `id=eq.${state.user.id}`, { tickets: newTickets });
     state.user.tickets = newTickets;
+    state.user.freeTicketCount = (state.user.freeTicketCount || 0) + 1;
     updateTicketCount();
 
     // 標記已發獎勵
